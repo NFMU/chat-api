@@ -8,14 +8,14 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserEntity } from './user.entity';
+import { User } from './user.entity';
 
 @Entity({ name: 'user_sessions' })
 @Index('idx_user_sessions_user_id', ['userId'])
 @Index('uq_user_sessions_refresh_token_hash', ['refreshTokenHash'], {
   unique: true,
 })
-export class UserSessionEntity {
+export class UserSession {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -49,9 +49,9 @@ export class UserSessionEntity {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 
-  @ManyToOne(() => UserEntity, (user) => user.sessions, {
+  @ManyToOne(() => User, (user) => user.sessions, {
     onDelete: "CASCADE",
   })
   @JoinColumn({ name: 'user_id' })
-  user: UserEntity;
+  user: User;
 }

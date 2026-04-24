@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('timezones')
-export class TimezoneEntity{
+export class Timezone{
   @PrimaryGeneratedColumn('increment')
   id: number;
 

@@ -10,8 +10,8 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { Language } from "./language.entity";
-import { TimezoneEntity } from "./timezone.entity";
-import { UserEntity } from "./user.entity";
+import { Timezone } from "./timezone.entity";
+import { User } from "./user.entity";
 
 export enum UserTheme {
   SYSTEM = "system",
@@ -20,7 +20,7 @@ export enum UserTheme {
 }
 
 @Entity({ name: "user_settings" })
-export class UserSettingsEntity {
+export class UserSettings {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
@@ -57,17 +57,17 @@ export class UserSettingsEntity {
   @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
   updatedAt: Date;
 
-  @OneToOne(() => UserEntity, (user) => user.settings, {
+  @OneToOne(() => User, (user) => user.settings, {
     onDelete: "CASCADE",
   })
   @JoinColumn({ name: "user_id" })
-  user: UserEntity;
+  user: User;
 
   @ManyToOne(() => Language, { nullable: false, onDelete: "RESTRICT" })
   @JoinColumn({ name: "language_id" })
   language: Language;
 
-  @ManyToOne(() => TimezoneEntity, { nullable: false, onDelete: "RESTRICT" })
+  @ManyToOne(() => Timezone, { nullable: false, onDelete: "RESTRICT" })
   @JoinColumn({ name: "timezone_id" })
-  timezone: TimezoneEntity;
+  timezone: Timezone;
 }

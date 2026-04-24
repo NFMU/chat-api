@@ -2,6 +2,7 @@ import { Global, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   DatabaseExtensionModule,
+  DatabaseModuleConfig,
   DatabaseType,
 } from "@xlr8-nest/core/database";
 import * as path from "path";
@@ -12,7 +13,7 @@ import { databaseSeeders } from "./seeders";
   imports: [
     DatabaseExtensionModule.registerAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
+      useFactory: ((configService: ConfigService) => {
         return {
           connection: {
             type: DatabaseType.POSTGRES,
@@ -37,9 +38,9 @@ import { databaseSeeders } from "./seeders";
             autoRun: configService.get("AUTO_RUN_SEEDS") === "true",
           },
         };
-      },
+      }) as (...args: unknown[]) => DatabaseModuleConfig | Promise<DatabaseModuleConfig>,
       global: true,
-    }),
+    }) ,
   ],
   exports: [DatabaseExtensionModule],
 })

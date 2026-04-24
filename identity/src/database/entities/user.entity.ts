@@ -9,10 +9,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { PasswordResetEntity } from './password-reset.entity';
-import { UserProfileEntity } from './user-profiles.entity';
-import { UserSessionEntity } from './user-sessions.entity';
-import { UserSettingsEntity } from './user-settings.entity';
+import { PasswordReset } from './password-reset.entity';
+import { UserProfile } from './user-profiles.entity';
+import { UserSession } from './user-sessions.entity';
+import { UserSettings } from './user-settings.entity';
 
 export enum UserStatus {
   ACTIVE = 'active',
@@ -21,7 +21,7 @@ export enum UserStatus {
 }
 
 @Entity({ name: 'users' })
-export class UserEntity {
+export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -54,15 +54,15 @@ export class UserEntity {
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt?: Date | null;
 
-  @OneToOne(() => UserProfileEntity, (profile) => profile.user)
-  profile: UserProfileEntity;
+  @OneToOne(() => UserProfile, (profile) => profile.user)
+  profile: UserProfile;
 
-  @OneToOne(() => UserSettingsEntity, (settings) => settings.user)
-  settings: UserSettingsEntity;
+  @OneToOne(() => UserSettings, (settings) => settings.user)
+  settings: UserSettings;
 
-  @OneToMany(() => UserSessionEntity, (session) => session.user)
-  sessions: UserSessionEntity[];
+  @OneToMany(() => UserSession, (session) => session.user)
+  sessions: UserSession[];
 
-  @OneToMany(() => PasswordResetEntity, (passwordReset) => passwordReset.user)
-  passwordResets: PasswordResetEntity[];
+  @OneToMany(() => PasswordReset, (passwordReset) => passwordReset.user)
+  passwordResets: PasswordReset[];
 }

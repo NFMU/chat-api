@@ -1,6 +1,6 @@
 import { Seeder } from "@xlr8-nest/core/database";
 import { DataSource } from "typeorm";
-import { TimezoneEntity } from "../entities/timezone.entity";
+import { Timezone } from "../entities/timezone.entity";
 import { timezoneData } from "../factories/datas/timezone.data";
 
 export class TimezoneSeeder extends Seeder {
@@ -9,7 +9,7 @@ export class TimezoneSeeder extends Seeder {
   }
 
   async run(): Promise<void> {
-    const timezoneRepository = this.dataSource.getRepository(TimezoneEntity);
+    const timezoneRepository = this.dataSource.getRepository(Timezone);
     const existingNames = new Set(
       (await timezoneRepository.find({ select: { name: true } })).map(
         (timezone) => timezone.name,

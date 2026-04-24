@@ -7,12 +7,12 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UserEntity } from './user.entity';
+import { User } from './user.entity';
 
 @Entity({ name: 'password_resets' })
 @Index('idx_password_resets_user_id', ['userId'])
 @Index('uq_password_resets_token_hash', ['tokenHash'], { unique: true })
-export class PasswordResetEntity {
+export class PasswordReset {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -37,9 +37,9 @@ export class PasswordResetEntity {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
-  @ManyToOne(() => UserEntity, (user) => user.passwordResets, {
+  @ManyToOne(() => User, (user) => user.passwordResets, {
     onDelete: "CASCADE",
   })
   @JoinColumn({ name: 'user_id' })
-  user: UserEntity;
+  user: User;
 }
