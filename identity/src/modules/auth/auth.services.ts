@@ -3,7 +3,7 @@ import { AuthRepository } from "./auth.repository";
 import { LoginInput, SignupInput } from "./inputs";
 import { comparePassword } from "src/core/utils";
 import { JwtService } from "@nestjs/jwt";
-import { UnauthorizedError } from "@xlr8-nest/core";
+import { UnauthorizedError } from "@xlr8-nest/core/errors";
 import { AuthError } from "src/core/errors/auth.error";
 
 @Injectable()
@@ -29,7 +29,7 @@ export class AuthService{
     return { token };
   }
 
-  signup(
+  async signup(
     input: SignupInput
   ){}
 }

@@ -13,6 +13,7 @@ import { JwtModule } from '@nestjs/jwt';
       envFilePath: '.env',
     }),
     JwtModule.register({
+      global: true,
       secret: process.env.JWT_SECRET
     }),
     DatabaseModule,
