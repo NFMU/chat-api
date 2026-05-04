@@ -8,7 +8,6 @@ export const signupInputSchema = z
     confirmPassword: z.string().min(8),
     firstName: z.string().min(1).max(120),
     lastName: z.string().min(1).max(120),
-    displayName: z.string().max(120).optional(),
     phoneNumber: z.string().max(32).optional(),
     jobTitle: z.string().max(120).optional(),
     company: z.string().max(120).optional(),
@@ -53,12 +52,6 @@ export class SignupInput {
     example: "Doe",
   })
   lastName: string;
-
-  @ApiProperty({
-    description: "The display name of the user",
-    example: "John Doe",
-  })
-  displayName?: string;
 
   @ApiProperty({
     description: "The phone number of the user",

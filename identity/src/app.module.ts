@@ -5,6 +5,9 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ProfileModule } from './modules/profiles/profile.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { JwtModule } from '@nestjs/jwt';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { EventModule } from '@xlr8-nest/core';
+import { MailModule } from './modules/mail/mail.module';
 
 @Module({
   imports: [
@@ -16,10 +19,24 @@ import { JwtModule } from '@nestjs/jwt';
       global: true,
       secret: process.env.JWT_SECRET
     }),
+    MailerModule.forRoot({
+      transport: {
+        host: process.env.EMAIL_HOST,
+        port: parseInt(process.env.EMAIL_PORT || '587', 10),
+        auth: {
+          user: process.env.EMAIL_USERNAME,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      },
+    }),
+    EventModule.forRoot({
+      maxListeners: 20,
+    }),
     DatabaseModule,
     AuthModule,
     ProfileModule,
     SettingsModule,
+    MailModule
   ],
   controllers: [],
   providers: [],

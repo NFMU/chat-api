@@ -10,12 +10,15 @@ import {
 } from "@xlr8-nest/core/errors";
 import { AuthError } from "src/core/errors/auth.error";
 import { LoginOutput } from "./outputs/login.output";
+import { EventBus } from "@xlr8-nest/core";
+import { UserCreatedEvent } from "./events/user-created.event";
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
+    private readonly eventBus: EventBus
   ) {}
 
   async login(input: LoginInput): Promise<LoginOutput> {
@@ -69,8 +72,7 @@ export class AuthService {
       throw new BadRequestError(AuthError.InvalidLocation);
     }
 
-    const displayName =
-      input.displayName ?? `${input.firstName} ${input.lastName}`;
+    const displayName = `${input.firstName} ${input.lastName}`;
     const user = await this.authRepository.createSignupUser(
       {
         email,
@@ -93,8 +95,12 @@ export class AuthService {
       },
     );
 
-    const token = await this.jwtService.signAsync({ userId: user.id });
+    this.eventBus.publish(new UserCreatedEvent(
+      user.id,
+      user.email,
+      displayName
+    ))
 
-    return { token };
+    return null;
   }
 }
