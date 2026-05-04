@@ -13,7 +13,12 @@ export class BusinessExceptionFilter implements ExceptionFilter {
 
     const ctx = host.switchToHttp();
 
-    const errorResponse = buildErrorResponse(exception);
+    const errorResponse = buildErrorResponse(
+      exception,
+      {
+        includeStatusCode: true,
+      }
+    );
     const { statusCode, ...responseBody } = errorResponse;
 
     httpAdapter.reply(ctx.getResponse(), responseBody, statusCode || StatusCode.INTERNAL_SERVER_ERROR);

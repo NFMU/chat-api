@@ -24,6 +24,7 @@ export class HTTPStatusInterceptor implements NestInterceptor {
           res.status(data.statusCode);
           delete data.statusCode;
         }
+        return data;
       }),
     );
   }
