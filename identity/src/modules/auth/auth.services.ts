@@ -1,106 +1,80 @@
 import { Injectable } from "@nestjs/common";
-import { AuthRepository } from "./auth.repository";
-import { LoginInput, SignupInput } from "./inputs";
-import { comparePassword, hashPassword } from "src/core/utils";
-import { JwtService } from "@nestjs/jwt";
+import { RequestMetadata } from "src/core/utils";
 import {
-  BadRequestError,
-  ConflictError,
-  UnauthorizedError,
-} from "@xlr8-nest/core/errors";
-import { AuthError } from "src/core/errors/auth.error";
-import { LoginOutput } from "./outputs/login.output";
-import { EventBus } from "@xlr8-nest/core";
-import { UserCreatedEvent } from "./events/user-created.event";
+  ChangePasswordInput,
+  LoginInput,
+  PasswordResetConfirmInput,
+  PasswordResetRequestInput,
+  RefreshTokenInput,
+  SignupInput,
+  VerifyEmailInput,
+} from "./inputs";
+import {
+  AcceptedOutput,
+  EmailVerificationOutput,
+  LoginOutput,
+  LogoutOutput,
+  SessionListOutput,
+} from "./outputs";
+import { PasswordService, SessionService, SignupService } from "./services";
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly authRepository: AuthRepository,
-    private readonly jwtService: JwtService,
-    private readonly eventBus: EventBus
+    private readonly signupService: SignupService,
+    private readonly sessionService: SessionService,
+    private readonly passwordService: PasswordService,
   ) {}
 
-  async login(input: LoginInput): Promise<LoginOutput> {
-    const { email, password } = input;
-    const user = await this.authRepository.getUserByEmail(email.toLowerCase());
-
-    const isPasswordValid = user
-      ? comparePassword(password, user.passwordHash)
-      : false;
-    if (!isPasswordValid) {
-      throw new UnauthorizedError(AuthError.InvalidCredentials);
-    }
-
-    const token = await this.jwtService.signAsync({ userId: user.id });
-
-    return { token };
+  login(
+    input: LoginInput,
+    metadata: RequestMetadata = {},
+  ): Promise<LoginOutput> {
+    return this.sessionService.login(input, metadata);
   }
 
-  async signup(input: SignupInput): Promise<LoginOutput> {
-    if (input.password !== input.confirmPassword) {
-      throw new BadRequestError(AuthError.PasswordMismatch);
-    }
+  signup(input: SignupInput): Promise<null> {
+    return this.signupService.signup(input);
+  }
 
-    const email = input.email.toLowerCase();
-    const existingUser = await this.authRepository.getUserByEmail(email);
-    if (existingUser) {
-      throw new ConflictError(AuthError.EmailAlreadyExists);
-    }
+  verifyEmail(input: VerifyEmailInput): Promise<EmailVerificationOutput> {
+    return this.signupService.verifyEmail(input);
+  }
 
-    const languageId = input.language_id ?? 1;
-    const timezoneId = input.timezone_id ?? 1;
-    const locationId = input.location_id ?? null;
+  refresh(input: RefreshTokenInput): Promise<LoginOutput> {
+    return this.sessionService.refresh(input);
+  }
 
-    const [languageExists, timezoneExists, locationExists] = await Promise.all([
-      this.authRepository.languageExists(languageId),
-      this.authRepository.timezoneExists(timezoneId),
-      locationId
-        ? this.authRepository.locationExists(locationId)
-        : Promise.resolve(true),
-    ]);
+  logout(userId: string, sessionId: string): Promise<LogoutOutput> {
+    return this.sessionService.logout(userId, sessionId);
+  }
 
-    if (!languageExists) {
-      throw new BadRequestError(AuthError.InvalidLanguage);
-    }
+  listSessions(userId: string): Promise<SessionListOutput> {
+    return this.sessionService.listSessions(userId);
+  }
 
-    if (!timezoneExists) {
-      throw new BadRequestError(AuthError.InvalidTimezone);
-    }
+  revokeSession(userId: string, sessionId: string): Promise<LogoutOutput> {
+    return this.sessionService.revokeSession(userId, sessionId);
+  }
 
-    if (!locationExists) {
-      throw new BadRequestError(AuthError.InvalidLocation);
-    }
+  requestPasswordReset(
+    input: PasswordResetRequestInput,
+    metadata: RequestMetadata = {},
+  ): Promise<AcceptedOutput> {
+    return this.passwordService.requestPasswordReset(input, metadata);
+  }
 
-    const displayName = `${input.firstName} ${input.lastName}`;
-    const user = await this.authRepository.createSignupUser(
-      {
-        email,
-        passwordHash: hashPassword(input.password),
-      },
-      {
-        displayName,
-        firstName: input.firstName,
-        lastName: input.lastName,
-        phoneNumber: input.phoneNumber,
-        jobTitle: input.jobTitle,
-        company: input.company,
-        website: input.website,
-        locationId,
-        bio: input.bio,
-      },
-      {
-        languageId,
-        timezoneId,
-      },
-    );
+  confirmPasswordReset(
+    input: PasswordResetConfirmInput,
+  ): Promise<AcceptedOutput> {
+    return this.passwordService.confirmPasswordReset(input);
+  }
 
-    this.eventBus.publish(new UserCreatedEvent(
-      user.id,
-      user.email,
-      displayName
-    ))
-
-    return null;
+  changePassword(
+    userId: string,
+    sessionId: string,
+    input: ChangePasswordInput,
+  ): Promise<AcceptedOutput> {
+    return this.passwordService.changePassword(userId, sessionId, input);
   }
 }

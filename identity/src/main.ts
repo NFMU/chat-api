@@ -12,6 +12,7 @@ async function bootstrap() {
     .setTitle('My App')
     .setDescription('My App API description')
     .setVersion('1.0')
+    .addBearerAuth(undefined, 'JWT-auth')
     .build();
 
   const httpAdapter = app.get(HttpAdapterHost);

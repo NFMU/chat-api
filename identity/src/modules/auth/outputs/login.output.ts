@@ -1,9 +1,33 @@
 import { ApiProperty } from "@nestjs/swagger";
 
-export class LoginOutput{
+export class LoginOutput {
   @ApiProperty({
-    description: 'The access token for the authenticated user',
-    example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+    description: "Short-lived JWT access token",
+    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   })
-  token: string;
+  access_token: string;
+
+  @ApiProperty({
+    description: "Opaque refresh token",
+    example: "A8M3fW8T1kXfJ2ZpQ0nK...",
+  })
+  refresh_token: string;
+
+  @ApiProperty({
+    description: "Token type",
+    example: "Bearer",
+  })
+  token_type: "Bearer";
+
+  @ApiProperty({
+    description: "Access token lifetime in seconds",
+    example: 900,
+  })
+  expires_in: number;
+
+  @ApiProperty({
+    description: "User session id",
+    example: "57362fa5-91e8-4a91-a3db-945cf498cb75",
+  })
+  session_id: string;
 }
