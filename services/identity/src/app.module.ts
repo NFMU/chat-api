@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ProfileModule } from './modules/profiles/profile.module';
+import { ReferenceModule } from './modules/references/reference.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { JwtModule } from '@nestjs/jwt';
 import { MailerModule } from '@nestjs-modules/mailer';
@@ -36,6 +37,7 @@ import { MailModule } from './modules/mail/mail.module';
     AuthModule,
     ProfileModule,
     SettingsModule,
+    ReferenceModule,
     MailModule
   ],
   controllers: [],
