@@ -5,16 +5,16 @@
  */
 export interface PlanFeaturesJson {
   /** Whether external guest accounts are allowed on this plan. */
-  guest_access?: boolean;
+  guestAccess?: boolean;
 
   /** Whether SSO providers may be configured. */
   sso?: boolean;
 
   /** Whether tenant audit logs are enabled. */
-  audit_log?: boolean;
+  auditLog?: boolean;
 
   /** Whether custom branding is allowed. */
-  custom_branding?: boolean;
+  customBranding?: boolean;
 
   /** Open for plan-specific extension flags. */
   [key: string]: boolean | string | number | null | undefined;

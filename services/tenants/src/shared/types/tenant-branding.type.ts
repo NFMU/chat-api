@@ -4,7 +4,7 @@
  */
 export interface TenantBrandingJson {
   /** CDN URL of the tenant logo. */
-  logo_url?: string;
+  logoUrl?: string;
 
   /** Primary brand color, hex string e.g. "#1a73e8". */
   color?: string;

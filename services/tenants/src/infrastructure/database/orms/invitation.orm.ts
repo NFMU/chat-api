@@ -14,13 +14,18 @@ import {
   InvitationType,
 } from "src/shared/enums";
 import { TenantOrm } from "./tenant.orm";
+import { UUID } from "crypto";
 
 @Entity("invitations")
+@Index("idx_invitations_uuid", ["uuid"], { unique: true })
 @Index("idx_invitations_tenant_id", ["tenantId"])
 @Index("idx_invitations_tenant_email", ["tenantId", "email"])
 export class InvitationOrm {
   @PrimaryGeneratedColumn("increment")
   id: number;
+
+  @Column({ type: "uuid", unique: true })
+  uuid: UUID;
 
   @Column({ name: "tenant_id", type: "integer" })
   tenantId: number;
@@ -29,10 +34,10 @@ export class InvitationOrm {
   channelId?: number | null;
 
   @Column({ name: "invited_by", type: "uuid" })
-  invitedBy: string;
+  invitedBy: UUID;
 
   @Column({ name: "accepted_by_user_id", type: "uuid", nullable: true })
-  acceptedByUserId?: string | null;
+  acceptedByUserId?: UUID | null;
 
   @Column({ type: "varchar", length: 255 })
   email: string;
