@@ -13,6 +13,12 @@ import * as path from "path";
     DatabaseExtensionModule.registerAsync({
       inject: [ConfigService],
       useFactory: ((configService: ConfigService) => {
+        console.log("Initializing database module with config:", {
+          host: configService.get("DB_HOST"),
+          port: configService.get("DB_PORT"),
+          username: configService.get("DB_USERNAME"),
+          database: configService.get("DB_NAME"),
+        });
         return {
           connection: {
             type: DatabaseType.POSTGRES,

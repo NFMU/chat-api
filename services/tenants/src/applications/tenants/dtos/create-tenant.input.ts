@@ -1,28 +1,30 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { UUID } from 'crypto';
+import { TenantBrandingJson, TenantSettingsJson } from 'src/shared';
 import { z } from 'zod';
 
 export const CreateTenantInputSchema = z.object({
-  planId: z.number(),
-  ownerUserId: z.string(),
+  planCode: z.string(),
+  ownerUserId: z.uuid(),
   name: z.string(),
   slug: z.string().optional(),
   domain: z.string().optional().nullable(),
-  timezoneId: z.uuidv4(),
-  languageId: z.uuidv4(),
+  timezoneId: z.uuid(),
+  languageId: z.uuid(),
 });
 
 export class CreateTenantInput {
   @ApiProperty({
-    example: 1,
-    description: 'The ID of the plan to which the tenant will be subscribed.',
+    example: 'plan_premium',
+    description: 'The code of the plan to which the tenant will be subscribed.',
   })
-  planId: number;
+  planCode: string;
 
   @ApiProperty({
-    example: 'user-123',
+    example: '123e4567-e89b-12d3-a456-426614174000', //uuid,
     description: 'The ID of the user who will be the owner of the tenant.',
   })
-  ownerUserId: string;
+  ownerUserId: UUID;
 
   @ApiProperty({
     example: 'Acme Corporation',
@@ -45,14 +47,33 @@ export class CreateTenantInput {
   domain?: string | null;
 
   @ApiProperty({
+    example: {
+      logoUrl: 'https://example.com/logo.png',
+      primaryColor: '#ff0000',
+      theme: 'light',
+    },
+    description: 'Branding information for the tenant. Optional.',
+  })
+  branding?: TenantBrandingJson; // You can define a more specific type based on your branding structure
+
+  @ApiProperty({
+    example: {
+      
+
+    },
+    description: 'Tenant-specific settings. Optional.',
+  })
+  tenantSetting?: TenantSettingsJson; // You can define a more specific type based on your tenant settings structure
+
+  @ApiProperty({
     example: '123e4567-e89b-12d3-a456-426614174000', //uuid,
     description: 'The timezone ID for the tenant.',
   })
-  timezoneId: string;
+  timezoneId: UUID;
 
   @ApiProperty({
     example: '123e4567-e89b-12d3-a456-426614174000', //uuid,
     description: 'The language ID for the tenant.',
   })
-  languageId: string;
+  languageId: UUID;
 }
