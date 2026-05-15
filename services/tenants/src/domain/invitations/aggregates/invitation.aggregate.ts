@@ -1,6 +1,6 @@
 import { AggregateRoot, StatusCode } from "@xlr8-nest/core";
 import { UUID } from "crypto";
-import { v4 as uuidv4 } from "uuid";
+import { v7 as uuidv7 } from "uuid";
 import {
   InvitationRoleScope,
   InvitationStatus,
@@ -16,9 +16,8 @@ import { Email } from "../value-objects/email.vo";
 import { InvitationToken } from "../value-objects/invitation-token.vo";
 
 export interface InvitationProps {
-  idSeq?: number;
   uuid: UUID;
-  tenantId: number;
+  tenantId: UUID;
   channelId?: number | null;
   email: Email;
   inviteType: InvitationType;
@@ -35,8 +34,7 @@ export interface InvitationProps {
 }
 
 export class Invitation extends AggregateRoot<UUID> {
-  private _idSeq?: number;
-  private _tenantId: number;
+  private _tenantId: UUID;
   private _channelId: number | null;
   private _email: Email;
   private _inviteType: InvitationType;
@@ -53,7 +51,6 @@ export class Invitation extends AggregateRoot<UUID> {
 
   private constructor(props: InvitationProps) {
     super(props.uuid);
-    this._idSeq = props.idSeq;
     this._tenantId = props.tenantId;
     this._channelId = props.channelId ?? null;
     this._email = props.email;
@@ -73,22 +70,13 @@ export class Invitation extends AggregateRoot<UUID> {
   static create(
     props: Omit<
       InvitationProps,
-      | "uuid"
-      | "idSeq"
-      | "status"
-      | "acceptedAt"
-      | "acceptedByUserId"
-      | "createdAt"
-      | "updatedAt"
+      "uuid" | "status" | "acceptedAt" | "acceptedByUserId" | "createdAt" | "updatedAt"
     >
   ): Invitation {
-    const invitation = new Invitation({ ...props, uuid: uuidv4() as UUID });
+    const uuid = uuidv7() as UUID;
+    const invitation = new Invitation({ ...props, uuid });
     invitation.addEvent(
-      new InvitationSentEvent(
-        invitation.id,
-        invitation._tenantId,
-        invitation._email.value
-      )
+      new InvitationSentEvent(uuid, invitation._tenantId, invitation._email.value)
     );
     return invitation;
   }
@@ -97,10 +85,63 @@ export class Invitation extends AggregateRoot<UUID> {
     return new Invitation(props);
   }
 
-  getIdSeq(): number | undefined {
-    return this._idSeq;
+  // --- Business operations ---
+
+  isExpired(now: Date = new Date()): boolean {
+    return this._expiredAt.getTime() <= now.getTime();
   }
-  getTenantId(): number {
+
+  accept(userId: UUID, now: Date = new Date()): void {
+    if (this._status !== InvitationStatus.PENDING) {
+      throw new BusinessException(
+        StatusCode.BAD_REQUEST,
+        TenantErrors.INVITATION_NOT_PENDING
+      );
+    }
+    if (this.isExpired(now)) {
+      this._status = InvitationStatus.EXPIRED;
+      this.touch();
+      this.addEvent(new InvitationExpiredEvent(this.getId(), this._tenantId));
+      throw new BusinessException(
+        StatusCode.BAD_REQUEST,
+        TenantErrors.INVITATION_EXPIRED
+      );
+    }
+    this._status = InvitationStatus.ACCEPTED;
+    this._acceptedAt = now;
+    this._acceptedByUserId = userId;
+    this.touch();
+    this.addEvent(new InvitationAcceptedEvent(this.getId(), this._tenantId, userId));
+  }
+
+  revoke(): void {
+    if (this._status !== InvitationStatus.PENDING) {
+      throw new BusinessException(
+        StatusCode.BAD_REQUEST,
+        TenantErrors.INVITATION_NOT_PENDING
+      );
+    }
+    this._status = InvitationStatus.REVOKED;
+    this.touch();
+    this.addEvent(new InvitationRevokedEvent(this.getId(), this._tenantId));
+  }
+
+  markExpired(): void {
+    if (this._status !== InvitationStatus.PENDING) return;
+    this._status = InvitationStatus.EXPIRED;
+    this.touch();
+    this.addEvent(new InvitationExpiredEvent(this.getId(), this._tenantId));
+  }
+
+  // --- Private helpers ---
+
+  private touch(): void {
+    this._updatedAt = new Date();
+  }
+
+  // --- Getters ---
+
+  getTenantId(): UUID {
     return this._tenantId;
   }
   getChannelId(): number | null {
@@ -141,57 +182,5 @@ export class Invitation extends AggregateRoot<UUID> {
   }
   getUpdatedAt(): Date {
     return this._updatedAt;
-  }
-
-  isExpired(now: Date = new Date()): boolean {
-    return this._expiredAt.getTime() <= now.getTime();
-  }
-
-  accept(userId: UUID, now: Date = new Date()): void {
-    if (this._status !== InvitationStatus.PENDING) {
-      throw new BusinessException(
-        StatusCode.BAD_REQUEST,
-        TenantErrors.INVITATION_NOT_PENDING
-      );
-    }
-    if (this.isExpired(now)) {
-      this._status = InvitationStatus.EXPIRED;
-      this.touch();
-      this.addEvent(new InvitationExpiredEvent(this.id, this._tenantId));
-      throw new BusinessException(
-        StatusCode.BAD_REQUEST,
-        TenantErrors.INVITATION_EXPIRED
-      );
-    }
-    this._status = InvitationStatus.ACCEPTED;
-    this._acceptedAt = now;
-    this._acceptedByUserId = userId;
-    this.touch();
-    this.addEvent(
-      new InvitationAcceptedEvent(this.id, this._tenantId, userId)
-    );
-  }
-
-  revoke(): void {
-    if (this._status !== InvitationStatus.PENDING) {
-      throw new BusinessException(
-        StatusCode.BAD_REQUEST,
-        TenantErrors.INVITATION_NOT_PENDING
-      );
-    }
-    this._status = InvitationStatus.REVOKED;
-    this.touch();
-    this.addEvent(new InvitationRevokedEvent(this.id, this._tenantId));
-  }
-
-  markExpired(): void {
-    if (this._status !== InvitationStatus.PENDING) return;
-    this._status = InvitationStatus.EXPIRED;
-    this.touch();
-    this.addEvent(new InvitationExpiredEvent(this.id, this._tenantId));
-  }
-
-  private touch(): void {
-    this._updatedAt = new Date();
   }
 }

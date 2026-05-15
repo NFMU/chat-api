@@ -8,7 +8,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import { UUID } from "crypto";
 import { TenantMemberStatus } from "src/shared/enums";
+import { BaseOrm } from "./base.orm";
 import { TenantOrm } from "./tenant.orm";
 
 @Entity("tenant_members")
@@ -18,12 +20,12 @@ import { TenantOrm } from "./tenant.orm";
 })
 @Index("idx_tenant_members_tenant_id", ["tenantId"])
 @Index("idx_tenant_members_user_id", ["userId"])
-export class TenantMemberOrm {
+export class TenantMemberOrm extends BaseOrm<TenantMemberOrm> {
   @PrimaryGeneratedColumn("increment")
   id: number;
 
-  @Column({ name: "tenant_id", type: "integer" })
-  tenantId: number;
+  @Column({ name: "tenant_id", type: "uuid" })
+  tenantId: UUID;
 
   @Column({ name: "user_id", type: "uuid" })
   userId: string;
@@ -56,6 +58,6 @@ export class TenantMemberOrm {
   @ManyToOne(() => TenantOrm, (tenant) => tenant.members, {
     onDelete: "CASCADE",
   })
-  @JoinColumn({ name: "tenant_id" })
+  @JoinColumn({ name: "tenant_id", referencedColumnName: "uuid" })
   tenant: TenantOrm;
 }

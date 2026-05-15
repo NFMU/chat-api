@@ -7,30 +7,28 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   UpdateDateColumn,
 } from "typeorm";
+import { UUID } from "crypto";
 import { TenantStatus } from "src/shared/enums";
 import { TenantBrandingJson, TenantSettingsJson } from "src/shared/types";
+import { BaseOrm } from "./base.orm";
 import { InvitationOrm } from "./invitation.orm";
 import { PlanOrm } from "./plan.orm";
 import { TenantMemberOrm } from "./tenant-member.orm";
 
 @Entity("tenants")
-export class TenantOrm {
-  @PrimaryGeneratedColumn("increment")
-  id: number;
+export class TenantOrm extends BaseOrm<TenantOrm> {
+  @PrimaryColumn({ type: "uuid" })
+  uuid: UUID;
 
-  @Index("uq_tenants_uuid", { unique: true })
-  @Column({ type: "uuid" })
-  uuid: string;
-
-  @Index("idx_tenants_plan_id")
-  @Column({ name: "plan_id", type: "integer" })
-  planId: number;
+  @Index("idx_tenants_plan_code")
+  @Column({ name: "plan_code", type: "varchar", length: 50 })
+  planCode: string;
 
   @Column({ name: "owner_user_id", type: "uuid" })
-  ownerUserId: string;
+  ownerUserId: UUID;
 
   @Column({ type: "varchar", length: 255 })
   name: string;
@@ -51,10 +49,10 @@ export class TenantOrm {
   status: TenantStatus;
 
   @Column({ name: "timezone_id", type: "uuid" })
-  timezoneId: string;
+  timezoneId: UUID;
 
   @Column({ name: "language_id", type: "uuid" })
-  languageId: string;
+  languageId: UUID;
 
   @Column({
     name: "branding_json",
@@ -86,7 +84,7 @@ export class TenantOrm {
   deletedAt?: Date | null;
 
   @ManyToOne(() => PlanOrm, (plan) => plan.tenants, { onDelete: "RESTRICT" })
-  @JoinColumn({ name: "plan_id" })
+  @JoinColumn({ name: "plan_code", referencedColumnName: "code" })
   plan: PlanOrm;
 
   @OneToMany(() => TenantMemberOrm, (member) => member.tenant)

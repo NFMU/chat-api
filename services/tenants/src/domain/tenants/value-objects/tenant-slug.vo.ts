@@ -1,6 +1,7 @@
 import { StatusCode, ValueObject } from "@xlr8-nest/core";
 import { TenantErrors } from "src/shared/errors/tenant.error";
 import { BusinessException } from "src/shared/exceptions/business.exception";
+import { TenantDomain } from "./tenant-domain.vo";
 
 const SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]{1,98}[a-z0-9])?$/;
 

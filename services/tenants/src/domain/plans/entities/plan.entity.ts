@@ -10,7 +10,6 @@ export interface PlanLimits {
 }
 
 export interface PlanProps {
-  idSeq?: number;
   code: PlanCode;
   name: string;
   description: string;
@@ -22,7 +21,6 @@ export interface PlanProps {
 }
 
 export class Plan extends Entity<PlanCode> {
-  private _idSeq?: number;
   private _name: string;
   private _description: string;
   private _maxMembers: number | null;
@@ -35,7 +33,6 @@ export class Plan extends Entity<PlanCode> {
 
   private constructor(props: PlanProps) {
     super(props.code);
-    this._idSeq = props.idSeq;
     this._name = props.name;
     this._description = props.description;
     this._features = props.features;
@@ -48,7 +45,7 @@ export class Plan extends Entity<PlanCode> {
   }
 
   static create(
-    props: Omit<PlanProps, "idSeq" | "createdAt" | "updatedAt">
+    props: Omit<PlanProps, "createdAt" | "updatedAt">
   ): Plan {
     return new Plan(props);
   }
@@ -57,13 +54,51 @@ export class Plan extends Entity<PlanCode> {
     return new Plan(props);
   }
 
+  // --- Business operations ---
+
+  isAvailable(): boolean {
+    return this._status === PlanStatus.ACTIVE;
+  }
+
+  rename(name: string): void {
+    this._name = name;
+    this.touch();
+  }
+
+  updateDescription(description: string): void {
+    this._description = description;
+    this.touch();
+  }
+
+  updateLimits(limits: PlanLimits): void {
+    if (limits.maxMembers !== undefined) this._maxMembers = limits.maxMembers;
+    if (limits.maxChannels !== undefined) this._maxChannels = limits.maxChannels;
+    if (limits.maxStorageGb !== undefined) this._maxStorageGb = limits.maxStorageGb;
+    this.touch();
+  }
+
+  updateFeatures(features: PlanFeatures): void {
+    this._features = features;
+    this.touch();
+  }
+
+  changeStatus(status: PlanStatus): void {
+    this._status = status;
+    this.touch();
+  }
+
+  // --- Private helpers ---
+
+  private touch(): void {
+    this._updatedAt = new Date();
+  }
+
+  // --- Getters ---
+
   get code(): PlanCode {
     return this._id;
   }
 
-  getIdSeq(): number | undefined {
-    return this._idSeq;
-  }
   getName(): string {
     return this._name;
   }
@@ -90,42 +125,5 @@ export class Plan extends Entity<PlanCode> {
   }
   getUpdatedAt(): Date {
     return this._updatedAt;
-  }
-
-  isAvailable(): boolean {
-    return this._status === PlanStatus.ACTIVE;
-  }
-
-  rename(name: string): void {
-    this._name = name;
-    this.touch();
-  }
-
-  updateDescription(description: string): void {
-    this._description = description;
-    this.touch();
-  }
-
-  updateLimits(limits: PlanLimits): void {
-    if (limits.maxMembers !== undefined) this._maxMembers = limits.maxMembers;
-    if (limits.maxChannels !== undefined)
-      this._maxChannels = limits.maxChannels;
-    if (limits.maxStorageGb !== undefined)
-      this._maxStorageGb = limits.maxStorageGb;
-    this.touch();
-  }
-
-  updateFeatures(features: PlanFeatures): void {
-    this._features = features;
-    this.touch();
-  }
-
-  changeStatus(status: PlanStatus): void {
-    this._status = status;
-    this.touch();
-  }
-
-  private touch(): void {
-    this._updatedAt = new Date();
   }
 }

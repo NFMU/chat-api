@@ -7,7 +7,7 @@ export class InvitationRevokedEvent implements DomainEvent {
 
   constructor(
     public readonly invitationId: UUID,
-    public readonly tenantId: number
+    public readonly tenantId: UUID
   ) {
     this.occurredOn = new Date();
   }

@@ -1,6 +1,6 @@
 import { AggregateRoot, StatusCode } from "@xlr8-nest/core";
 import { UUID } from "crypto";
-import { v4 as uuidv4 } from "uuid";
+import { v7 as uuidv7 } from "uuid";
 import { PlanCode } from "src/domain/plans/value-objects/plan-code.vo";
 import { TenantStatus } from "src/shared/enums";
 import { TenantErrors } from "src/shared/errors/tenant.error";
@@ -15,7 +15,6 @@ import { TenantSetting } from "../value-objects/tenant-setting.vo";
 import { TenantSlug } from "../value-objects/tenant-slug.vo";
 
 export interface TenantProps {
-  idSeq?: number;
   uuid: UUID;
   ownerUserId: UUID;
   planCode: PlanCode;
@@ -34,7 +33,6 @@ export interface TenantProps {
 }
 
 export class Tenant extends AggregateRoot<UUID> {
-  private _idSeq?: number;
   private _planCode: PlanCode;
   private _ownerUserId: UUID;
   private _name: string;
@@ -52,7 +50,6 @@ export class Tenant extends AggregateRoot<UUID> {
 
   private constructor(props: TenantProps) {
     super(props.uuid);
-    this._idSeq = props.idSeq;
     this._planCode = props.planCode;
     this._ownerUserId = props.ownerUserId;
     this._name = props.name;
@@ -72,31 +69,21 @@ export class Tenant extends AggregateRoot<UUID> {
   static create(
     props: Omit<
       TenantProps,
-      | "uuid"
-      | "idSeq"
-      | "status"
-      | "activatedAt"
-      | "suspendedAt"
-      | "createdAt"
-      | "updatedAt"
+      "uuid" | "status" | "activatedAt" | "suspendedAt" | "createdAt" | "updatedAt"
     >
   ): Tenant {
     const now = new Date();
+    const uuid = uuidv7() as UUID;
     const tenant = new Tenant({
       ...props,
-      uuid: uuidv4() as UUID,
+      uuid,
       status: TenantStatus.ACTIVE,
       activatedAt: now,
       createdAt: now,
       updatedAt: now,
     });
     tenant.addEvent(
-      new TenantCreatedEvent(
-        tenant.id,
-        tenant._ownerUserId,
-        tenant._planCode,
-        tenant._slug.value
-      )
+      new TenantCreatedEvent(uuid, tenant._ownerUserId, tenant._planCode, tenant._slug.value)
     );
     return tenant;
   }
@@ -105,9 +92,79 @@ export class Tenant extends AggregateRoot<UUID> {
     return new Tenant(props);
   }
 
-  getIdSeq(): number | undefined {
-    return this._idSeq;
+  // --- Business operations ---
+
+  rename(name: string): void {
+    this._name = name;
+    this.touch();
   }
+
+  rebrand(branding: TenantBranding): void {
+    this._branding = branding;
+    this.touch();
+  }
+
+  updateSettings(settings: TenantSetting): void {
+    this._settings = settings;
+    this.touch();
+  }
+
+  changeDomain(domain: TenantDomain | null): void {
+    this.assertNotDeleted();
+    this._domain = domain;
+    this.touch();
+  }
+
+  changePlan(planCode: PlanCode): void {
+    this.assertNotDeleted();
+    if (this._planCode.equals(planCode)) return;
+    const previous = this._planCode;
+    this._planCode = planCode;
+    this.touch();
+    this.addEvent(new TenantPlanChangedEvent(this.getId(), previous, planCode));
+  }
+
+  activate(now: Date = new Date()): void {
+    this.assertNotDeleted();
+    if (this._status === TenantStatus.ACTIVE) {
+      throw new BusinessException(
+        StatusCode.BAD_REQUEST,
+        TenantErrors.TENANT_ALREADY_ACTIVE
+      );
+    }
+    this._status = TenantStatus.ACTIVE;
+    this._activatedAt = now;
+    this._suspendedAt = null;
+    this.touch();
+    this.addEvent(new TenantActivatedEvent(this.getId()));
+  }
+
+  suspend(reason?: string, now: Date = new Date()): void {
+    this.assertNotDeleted();
+    if (this._status === TenantStatus.SUSPENDED) return;
+    this._status = TenantStatus.SUSPENDED;
+    this._suspendedAt = now;
+    this.touch();
+    this.addEvent(new TenantSuspendedEvent(this.getId(), reason));
+  }
+
+  // --- Private helpers ---
+
+  private assertNotDeleted(): void {
+    if (this._status === TenantStatus.DELETED) {
+      throw new BusinessException(
+        StatusCode.BAD_REQUEST,
+        TenantErrors.TENANT_DELETED
+      );
+    }
+  }
+
+  private touch(): void {
+    this._updatedAt = new Date();
+  }
+
+  // --- Getters ---
+
   getPlanCode(): PlanCode {
     return this._planCode;
   }
@@ -149,72 +206,5 @@ export class Tenant extends AggregateRoot<UUID> {
   }
   getUpdatedAt(): Date {
     return this._updatedAt;
-  }
-
-  rename(name: string): void {
-    this._name = name;
-    this.touch();
-  }
-
-  rebrand(branding: TenantBranding): void {
-    this._branding = branding;
-    this.touch();
-  }
-
-  updateSettings(settings: TenantSetting): void {
-    this._settings = settings;
-    this.touch();
-  }
-
-  changeDomain(domain: TenantDomain | null): void {
-    this.assertNotDeleted();
-    this._domain = domain;
-    this.touch();
-  }
-
-  changePlan(planCode: PlanCode): void {
-    this.assertNotDeleted();
-    if (this._planCode.equals(planCode)) return;
-    const previous = this._planCode;
-    this._planCode = planCode;
-    this.touch();
-    this.addEvent(new TenantPlanChangedEvent(this.id, previous, planCode));
-  }
-
-  activate(now: Date = new Date()): void {
-    this.assertNotDeleted();
-    if (this._status === TenantStatus.ACTIVE) {
-      throw new BusinessException(
-        StatusCode.BAD_REQUEST,
-        TenantErrors.TENANT_ALREADY_ACTIVE
-      );
-    }
-    this._status = TenantStatus.ACTIVE;
-    this._activatedAt = now;
-    this._suspendedAt = null;
-    this.touch();
-    this.addEvent(new TenantActivatedEvent(this.id));
-  }
-
-  suspend(reason?: string, now: Date = new Date()): void {
-    this.assertNotDeleted();
-    if (this._status === TenantStatus.SUSPENDED) return;
-    this._status = TenantStatus.SUSPENDED;
-    this._suspendedAt = now;
-    this.touch();
-    this.addEvent(new TenantSuspendedEvent(this.id, reason));
-  }
-
-  private assertNotDeleted(): void {
-    if (this._status === TenantStatus.DELETED) {
-      throw new BusinessException(
-        StatusCode.BAD_REQUEST,
-        TenantErrors.TENANT_DELETED
-      );
-    }
-  }
-
-  private touch(): void {
-    this._updatedAt = new Date();
   }
 }

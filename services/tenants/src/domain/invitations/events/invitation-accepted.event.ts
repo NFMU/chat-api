@@ -7,7 +7,7 @@ export class InvitationAcceptedEvent implements DomainEvent {
 
   constructor(
     public readonly invitationId: UUID,
-    public readonly tenantId: number,
+    public readonly tenantId: UUID,
     public readonly acceptedByUserId: UUID
   ) {
     this.occurredOn = new Date();

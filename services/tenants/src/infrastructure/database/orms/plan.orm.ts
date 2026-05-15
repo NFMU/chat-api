@@ -2,22 +2,18 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  Index,
   OneToMany,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   UpdateDateColumn,
 } from "typeorm";
 import { PlanStatus } from "src/shared/enums";
 import { PlanFeaturesJson } from "src/shared/types";
 import { TenantOrm } from "./tenant.orm";
+import { BaseOrm } from "./base.orm";
 
 @Entity("plans")
-export class PlanOrm {
-  @PrimaryGeneratedColumn("increment")
-  id: number;
-
-  @Index("uq_plans_code", { unique: true })
-  @Column({ type: "varchar", length: 50 })
+export class PlanOrm extends BaseOrm<PlanOrm> {
+  @PrimaryColumn({ type: "varchar", length: 50 })
   code: string;
 
   @Column({ type: "varchar", length: 120 })

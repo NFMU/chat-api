@@ -5,30 +5,27 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   UpdateDateColumn,
 } from "typeorm";
+import { UUID } from "crypto";
 import {
   InvitationRoleScope,
   InvitationStatus,
   InvitationType,
 } from "src/shared/enums";
+import { BaseOrm } from "./base.orm";
 import { TenantOrm } from "./tenant.orm";
-import { UUID } from "crypto";
 
 @Entity("invitations")
-@Index("idx_invitations_uuid", ["uuid"], { unique: true })
 @Index("idx_invitations_tenant_id", ["tenantId"])
 @Index("idx_invitations_tenant_email", ["tenantId", "email"])
-export class InvitationOrm {
-  @PrimaryGeneratedColumn("increment")
-  id: number;
-
-  @Column({ type: "uuid", unique: true })
+export class InvitationOrm extends BaseOrm<InvitationOrm> {
+  @PrimaryColumn({ type: "uuid" })
   uuid: UUID;
 
-  @Column({ name: "tenant_id", type: "integer" })
-  tenantId: number;
+  @Column({ name: "tenant_id", type: "uuid" })
+  tenantId: UUID;
 
   @Column({ name: "channel_id", type: "integer", nullable: true })
   channelId?: number | null;
@@ -87,6 +84,6 @@ export class InvitationOrm {
   @ManyToOne(() => TenantOrm, (tenant) => tenant.invitations, {
     onDelete: "CASCADE",
   })
-  @JoinColumn({ name: "tenant_id" })
+  @JoinColumn({ name: "tenant_id", referencedColumnName: "uuid" })
   tenant: TenantOrm;
 }
