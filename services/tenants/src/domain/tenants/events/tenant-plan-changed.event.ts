@@ -9,7 +9,8 @@ export class TenantPlanChangedEvent implements DomainEvent {
   constructor(
     public readonly tenantId: UUID,
     public readonly previousPlanCode: PlanCode,
-    public readonly newPlanCode: PlanCode
+    public readonly newPlanCode: PlanCode,
+    public readonly newPlanVersionId: number
   ) {
     this.occurredOn = new Date();
   }

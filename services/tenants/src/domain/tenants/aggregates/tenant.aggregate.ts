@@ -18,6 +18,7 @@ export interface TenantProps {
   uuid: UUID;
   ownerUserId: UUID;
   planCode: PlanCode;
+  currentPlanVersionId: number;
   name: string;
   slug: TenantSlug;
   domain?: TenantDomain | null;
@@ -34,6 +35,7 @@ export interface TenantProps {
 
 export class Tenant extends AggregateRoot<UUID> {
   private _planCode: PlanCode;
+  private _currentPlanVersionId: number;
   private _ownerUserId: UUID;
   private _name: string;
   private _slug: TenantSlug;
@@ -51,6 +53,7 @@ export class Tenant extends AggregateRoot<UUID> {
   private constructor(props: TenantProps) {
     super(props.uuid);
     this._planCode = props.planCode;
+    this._currentPlanVersionId = props.currentPlanVersionId;
     this._ownerUserId = props.ownerUserId;
     this._name = props.name;
     this._slug = props.slug;
@@ -115,13 +118,18 @@ export class Tenant extends AggregateRoot<UUID> {
     this.touch();
   }
 
-  changePlan(planCode: PlanCode): void {
+  /**
+   * Switches the tenant to a new plan version. The caller is responsible for
+   * closing the current TenantSubscription and creating a new one before calling this.
+   */
+  changePlan(planCode: PlanCode, planVersionId: number): void {
     this.assertNotDeleted();
-    if (this._planCode.equals(planCode)) return;
+    if (this._planCode.equals(planCode) && this._currentPlanVersionId === planVersionId) return;
     const previous = this._planCode;
     this._planCode = planCode;
+    this._currentPlanVersionId = planVersionId;
     this.touch();
-    this.addEvent(new TenantPlanChangedEvent(this.getId(), previous, planCode));
+    this.addEvent(new TenantPlanChangedEvent(this.getId(), previous, planCode, planVersionId));
   }
 
   activate(now: Date = new Date()): void {

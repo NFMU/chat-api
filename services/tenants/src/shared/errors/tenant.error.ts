@@ -61,4 +61,20 @@ export const TenantErrors: Record<string, ErrorType> = {
     code: "INVITATION_EXPIRED",
     message: "Invitation has expired",
   },
+  PLAN_NOT_AVAILABLE: {
+    code: "PLAN_NOT_AVAILABLE",
+    message: "Plan is not available for new subscriptions",
+  },
+  PLAN_VERSION_NOT_DRAFT: {
+    code: "PLAN_VERSION_NOT_DRAFT",
+    message: "Plan version must be in draft status",
+  },
+  PLAN_VERSION_NOT_PUBLISHED: {
+    code: "PLAN_VERSION_NOT_PUBLISHED",
+    message: "Plan version must be published to perform this operation",
+  },
+  SUBSCRIPTION_NOT_ACTIVE: {
+    code: "SUBSCRIPTION_NOT_ACTIVE",
+    message: "Subscription is not active",
+  },
 };

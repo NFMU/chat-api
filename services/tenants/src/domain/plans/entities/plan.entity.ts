@@ -1,7 +1,9 @@
 import { Entity } from "@xlr8-nest/core/ddd";
+import { StatusCode } from "@xlr8-nest/core";
 import { PlanStatus } from "src/shared/enums";
+import { TenantErrors } from "src/shared/errors/tenant.error";
+import { BusinessException } from "src/shared/exceptions/business.exception";
 import { PlanCode } from "../value-objects/plan-code.vo";
-import { PlanFeatures } from "../value-objects/plan-features.vo";
 
 export interface PlanLimits {
   maxMembers?: number | null;
@@ -13,9 +15,8 @@ export interface PlanProps {
   code: PlanCode;
   name: string;
   description: string;
-  features: PlanFeatures;
   status: PlanStatus;
-  limits?: PlanLimits;
+  nextVersion?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -23,11 +24,8 @@ export interface PlanProps {
 export class Plan extends Entity<PlanCode> {
   private _name: string;
   private _description: string;
-  private _maxMembers: number | null;
-  private _maxChannels: number | null;
-  private _maxStorageGb: string | null;
-  private _features: PlanFeatures;
   private _status: PlanStatus;
+  private _nextVersion: number;
   private _createdAt: Date;
   private _updatedAt: Date;
 
@@ -35,18 +33,13 @@ export class Plan extends Entity<PlanCode> {
     super(props.code);
     this._name = props.name;
     this._description = props.description;
-    this._features = props.features;
     this._status = props.status;
-    this._maxMembers = props.limits?.maxMembers ?? null;
-    this._maxChannels = props.limits?.maxChannels ?? null;
-    this._maxStorageGb = props.limits?.maxStorageGb ?? null;
+    this._nextVersion = props.nextVersion ?? 1;
     this._createdAt = props.createdAt ?? new Date();
     this._updatedAt = props.updatedAt ?? this._createdAt;
   }
 
-  static create(
-    props: Omit<PlanProps, "createdAt" | "updatedAt">
-  ): Plan {
+  static create(props: Omit<PlanProps, "createdAt" | "updatedAt" | "nextVersion">): Plan {
     return new Plan(props);
   }
 
@@ -70,21 +63,23 @@ export class Plan extends Entity<PlanCode> {
     this.touch();
   }
 
-  updateLimits(limits: PlanLimits): void {
-    if (limits.maxMembers !== undefined) this._maxMembers = limits.maxMembers;
-    if (limits.maxChannels !== undefined) this._maxChannels = limits.maxChannels;
-    if (limits.maxStorageGb !== undefined) this._maxStorageGb = limits.maxStorageGb;
-    this.touch();
-  }
-
-  updateFeatures(features: PlanFeatures): void {
-    this._features = features;
-    this.touch();
-  }
-
   changeStatus(status: PlanStatus): void {
     this._status = status;
     this.touch();
+  }
+
+  /**
+   * Reserves the next version number for a new PlanVersion and advances the counter.
+   * The caller is responsible for creating the PlanVersion with the returned number
+   * and saving both the PlanVersion and this Plan in the same transaction.
+   */
+  useNextVersion(): number {
+    if (!this.isAvailable()) {
+      throw new BusinessException(StatusCode.BAD_REQUEST, TenantErrors.PLAN_NOT_AVAILABLE);
+    }
+    const version = this._nextVersion++;
+    this.touch();
+    return version;
   }
 
   // --- Private helpers ---
@@ -105,20 +100,11 @@ export class Plan extends Entity<PlanCode> {
   getDescription(): string {
     return this._description;
   }
-  getMaxMembers(): number | null {
-    return this._maxMembers;
-  }
-  getMaxChannels(): number | null {
-    return this._maxChannels;
-  }
-  getMaxStorageGb(): string | null {
-    return this._maxStorageGb;
-  }
-  getFeatures(): PlanFeatures {
-    return this._features;
-  }
   getStatus(): PlanStatus {
     return this._status;
+  }
+  getNextVersion(): number {
+    return this._nextVersion;
   }
   getCreatedAt(): Date {
     return this._createdAt;
