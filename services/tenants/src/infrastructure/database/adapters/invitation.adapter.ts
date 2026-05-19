@@ -19,7 +19,7 @@ export class InvitationAdapter {
       roleCode: orm.roleCode,
       invitedBy: orm.invitedBy as UUID,
       status: orm.status,
-      expiredAt: orm.expiresAt,
+      expiresAt: orm.expiresAt,
       acceptedAt: orm.acceptedAt ?? null,
       acceptedByUserId: (orm.acceptedByUserId as UUID) ?? null,
       createdAt: orm.createdAt,
@@ -39,11 +39,9 @@ export class InvitationAdapter {
       roleCode: domain.getRoleCode(),
       invitedBy: domain.getInvitedBy(),
       status: domain.getStatus(),
-      expiresAt: domain.getExpiredAt(),
+      expiresAt: domain.getExpiresAt(),
       acceptedAt: domain.getAcceptedAt(),
       acceptedByUserId: domain.getAcceptedByUserId(),
-      createdAt: domain.getCreatedAt(),
-      updatedAt: domain.getUpdatedAt(),
     });
   }
 }

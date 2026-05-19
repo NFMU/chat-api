@@ -10,6 +10,7 @@ export class TenantCreatedEvent implements DomainEvent {
     public readonly tenantId: UUID,
     public readonly ownerUserId: UUID,
     public readonly planCode: PlanCode,
+    public readonly planVersionId: number,
     public readonly slug: string
   ) {
     this.occurredOn = new Date();

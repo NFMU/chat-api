@@ -16,7 +16,9 @@ import { TenantBrandingJson, TenantSettingsJson } from "src/shared/types";
 import { BaseOrm } from "./base.orm";
 import { InvitationOrm } from "./invitation.orm";
 import { PlanOrm } from "./plan.orm";
+import { PlanVersionOrm } from "./plan-version.orm";
 import { TenantMemberOrm } from "./tenant-member.orm";
+import { TenantSubscriptionOrm } from "./tenant-subscription.orm";
 
 @Entity("tenants")
 export class TenantOrm extends BaseOrm<TenantOrm> {
@@ -26,6 +28,9 @@ export class TenantOrm extends BaseOrm<TenantOrm> {
   @Index("idx_tenants_plan_code")
   @Column({ name: "plan_code", type: "varchar", length: 50 })
   planCode: string;
+
+  @Column({ name: "current_plan_version_id", type: "integer", nullable: true })
+  currentPlanVersionId?: number | null;
 
   @Column({ name: "owner_user_id", type: "uuid" })
   ownerUserId: UUID;
@@ -86,6 +91,13 @@ export class TenantOrm extends BaseOrm<TenantOrm> {
   @ManyToOne(() => PlanOrm, (plan) => plan.tenants, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "plan_code", referencedColumnName: "code" })
   plan: PlanOrm;
+
+  @ManyToOne(() => PlanVersionOrm, { onDelete: "RESTRICT", nullable: true })
+  @JoinColumn({ name: "current_plan_version_id", referencedColumnName: "id" })
+  currentPlanVersion?: PlanVersionOrm | null;
+
+  @OneToMany(() => TenantSubscriptionOrm, (sub) => sub.tenant)
+  subscriptions: TenantSubscriptionOrm[];
 
   @OneToMany(() => TenantMemberOrm, (member) => member.tenant)
   members: TenantMemberOrm[];

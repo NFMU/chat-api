@@ -77,4 +77,24 @@ export const TenantErrors: Record<string, ErrorType> = {
     code: "SUBSCRIPTION_NOT_ACTIVE",
     message: "Subscription is not active",
   },
+  MEMBER_NOT_ACTIVE: {
+    code: "MEMBER_NOT_ACTIVE",
+    message: "Member is not active",
+  },
+  MEMBER_NOT_SUSPENDED: {
+    code: "MEMBER_NOT_SUSPENDED",
+    message: "Member is not suspended",
+  },
+  MEMBER_ALREADY_EXISTS: {
+    code: "MEMBER_ALREADY_EXISTS",
+    message: "User is already an active member of this tenant",
+  },
+  INVITATION_ALREADY_PENDING: {
+    code: "INVITATION_ALREADY_PENDING",
+    message: "A pending invitation already exists for this email",
+  },
+  PLAN_VERSION_NOT_FOUND: {
+    code: "PLAN_VERSION_NOT_FOUND",
+    message: "No published plan version found for the requested plan",
+  },
 };

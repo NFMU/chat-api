@@ -6,14 +6,28 @@ import { TenantBranding } from "src/domain/tenants/value-objects/tenant-branding
 import { TenantDomain } from "src/domain/tenants/value-objects/tenant-domain.vo";
 import { TenantSetting } from "src/domain/tenants/value-objects/tenant-setting.vo";
 import { TenantSlug } from "src/domain/tenants/value-objects/tenant-slug.vo";
+import { TenantSubscriptionAdapter } from "./tenant-subscription.adapter";
 import { TenantOrm } from "../orms/tenant.orm";
+import { SubscriptionStatus } from "src/shared/enums";
 
 @Injectable()
 export class TenantAdapter {
+  constructor(
+    private readonly subscriptionAdapter: TenantSubscriptionAdapter
+  ) {}
+
   toDomain(orm: TenantOrm): Tenant {
+    const activeSubscriptionOrm = orm.subscriptions?.find(
+      (s) => s.status === SubscriptionStatus.ACTIVE
+    ) ?? null;
+
     return Tenant.reconstitute({
       uuid: orm.uuid as UUID,
       planCode: new PlanCode(orm.planCode),
+      currentPlanVersionId: orm.currentPlanVersionId ?? 0,
+      activeSubscription: activeSubscriptionOrm
+        ? this.subscriptionAdapter.toDomain(activeSubscriptionOrm)
+        : null,
       ownerUserId: orm.ownerUserId as UUID,
       name: orm.name,
       slug: new TenantSlug(orm.slug),
@@ -34,6 +48,7 @@ export class TenantAdapter {
     return new TenantOrm({
       uuid: domain.getId() as UUID,
       planCode: domain.getPlanCode().value,
+      currentPlanVersionId: domain.getCurrentPlanVersionId() || null,
       ownerUserId: domain.getOwnerUserId(),
       name: domain.getName(),
       slug: domain.getSlug().value,
@@ -45,8 +60,6 @@ export class TenantAdapter {
       settingsJson: domain.getSettings(),
       activatedAt: domain.getActivatedAt(),
       suspendedAt: domain.getSuspendedAt(),
-      createdAt: domain.getCreatedAt(),
-      updatedAt: domain.getUpdatedAt(),
     });
   }
 }

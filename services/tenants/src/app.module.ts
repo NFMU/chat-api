@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CqrsModule } from '@xlr8-nest/core';
 import { DatabaseModule } from './infrastructure/database/database.module';
-import { ApplicatinonProvider } from './applications/tenants/application-provider';
+import { ApplicationProvider } from './applications/tenants/application-provider';
 import { InfrastructureProvider } from './infrastructure/infrastructure-provider';
 import { TenantsController } from './presentation/http/tenants/tenants.controller';
 
@@ -20,7 +20,7 @@ import { TenantsController } from './presentation/http/tenants/tenants.controlle
     TenantsController
   ],
   providers: [
-    ...ApplicatinonProvider,
+    ...ApplicationProvider,
     ...InfrastructureProvider
   ],
 })

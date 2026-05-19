@@ -5,7 +5,7 @@ import { TenantErrors } from "src/shared/errors/tenant.error";
 import { BusinessException } from "src/shared/exceptions/business.exception";
 import { PlanCode } from "../value-objects/plan-code.vo";
 import { PlanFeatures } from "../value-objects/plan-features.vo";
-import { PlanLimits } from "./plan.entity";
+import { PlanLimits } from "../types/plan-limits.type";
 
 export interface PlanVersionProps {
   id: number;
@@ -19,6 +19,12 @@ export interface PlanVersionProps {
   createdAt?: Date;
 }
 
+/**
+ * Immutable snapshot of a plan's limits and feature flags at a specific version.
+ * Owned by the Plan aggregate — never mutated from outside the Plan boundary.
+ * State transitions (publish, deprecate) are invoked by Plan methods, which also
+ * emit the corresponding domain events.
+ */
 export class PlanVersion extends Entity<number> {
   private _planCode: PlanCode;
   private _version: number;
@@ -46,7 +52,7 @@ export class PlanVersion extends Entity<number> {
   }
 
   /**
-   * Creates a new DRAFT version. id = 0 indicates it is not yet persisted (auto-increment).
+   * Called by Plan.draftNewVersion(). id = 0 is the sentinel for "not yet persisted".
    */
   static create(
     props: Omit<PlanVersionProps, "id" | "status" | "publishedAt" | "deprecatedAt" | "createdAt">
@@ -62,7 +68,7 @@ export class PlanVersion extends Entity<number> {
     return new PlanVersion(props);
   }
 
-  // --- Business operations ---
+  // --- State transitions (called by Plan aggregate, which emits the events) ---
 
   publish(now: Date = new Date()): void {
     if (this._status !== PlanVersionStatus.DRAFT) {
