@@ -1,6 +1,8 @@
 import { CommandHandler, EventBus, ICommandHandler } from "@xlr8-nest/core";
 import { Inject } from "@nestjs/common";
 import { StatusCode } from "@xlr8-nest/core";
+import { IUnitOfWork, IUnitOfWorkToken } from "@xlr8-nest/core/database";
+import { OutboxPublisher } from "@xlr8-nest/core/messaging";
 import { CreateTenantCommand } from "../commands/create-tenant.command";
 import { Tenant } from "src/domain/tenants/aggregates/tenant.aggregate";
 import { ITenantRepository, TenantRepositoryToken } from "src/domain/tenants/repositories/tenant.repository";
@@ -13,7 +15,6 @@ import { TenantSetting } from "src/domain/tenants/value-objects/tenant-setting.v
 import { TenantSlugGeneratorService } from "src/domain/services/tenant-slug-generator.service";
 import { TenantErrors } from "src/shared/errors/tenant.error";
 import { BusinessException } from "src/shared/exceptions/business.exception";
-import { pushDomainEvents } from "src/shared/utils/event.util";
 
 @CommandHandler(CreateTenantCommand)
 export class CreateTenantHandler implements ICommandHandler<CreateTenantCommand> {
@@ -22,7 +23,10 @@ export class CreateTenantHandler implements ICommandHandler<CreateTenantCommand>
     private readonly tenantRepo: ITenantRepository,
     @Inject(PlanRepositoryToken)
     private readonly planRepo: IPlanRepository,
+    @Inject(IUnitOfWorkToken)
+    private readonly uow: IUnitOfWork,
     private readonly slugGenerator: TenantSlugGeneratorService,
+    private readonly outbox: OutboxPublisher,
     private readonly eventBus: EventBus
   ) {}
 
@@ -66,10 +70,19 @@ export class CreateTenantHandler implements ICommandHandler<CreateTenantCommand>
       languageId: input.languageId,
     });
 
-    // 6. Persist tenant + initial subscription atomically.
-    await this.tenantRepo.create(tenant);
+    // 6. Atomic transaction: persist tenant + initial subscription + integration events to outbox.
+    //    The library's IUnitOfWork.transaction() propagates the active EntityManager through
+    //    AsyncLocalStorage so the repository and outbox writes commit atomically.
+    let domainEvents = await this.uow.transaction(async () => {
+      await this.tenantRepo.create(tenant);
+      return this.outbox.publishFrom(tenant);
+    });
 
-    // 7. Publish domain events.
-    pushDomainEvents(this.eventBus, tenant);
+    // 7. After commit, dispatch domain events to in-process listeners
+    //    (logging, metrics, read-model projectors). Failures here do NOT
+    //    affect cross-service delivery — that is already in the outbox.
+    for (const event of domainEvents) {
+      this.eventBus.publish(event);
+    }
   }
 }

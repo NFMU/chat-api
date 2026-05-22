@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { PlanStatus } from "src/shared/enums";
-import { BaseOrm } from "./base.orm";
+import { BaseOrm } from "@xlr8-nest/core/database";
 import { PlanVersionOrm } from "./plan-version.orm";
 import { TenantOrm } from "./tenant.orm";
 

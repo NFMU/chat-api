@@ -65,6 +65,10 @@ export const TenantErrors: Record<string, ErrorType> = {
     code: "PLAN_NOT_AVAILABLE",
     message: "Plan is not available for new subscriptions",
   },
+  INVALID_PLAN_LIMIT: {
+    code: "INVALID_PLAN_LIMIT",
+    message: "Plan limit values are invalid",
+  },
   PLAN_VERSION_NOT_DRAFT: {
     code: "PLAN_VERSION_NOT_DRAFT",
     message: "Plan version must be in draft status",

@@ -10,7 +10,7 @@ import {
 } from "typeorm";
 import { UUID } from "crypto";
 import { SubscriptionStatus } from "src/shared/enums";
-import { BaseOrm } from "./base.orm";
+import { BaseOrm } from "@xlr8-nest/core/database";
 import { TenantOrm } from "./tenant.orm";
 import { PlanVersionOrm } from "./plan-version.orm";
 

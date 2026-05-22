@@ -12,8 +12,7 @@ import {
 } from "typeorm";
 import { UUID } from "crypto";
 import { TenantStatus } from "src/shared/enums";
-import { TenantBrandingJson, TenantSettingsJson } from "src/shared/types";
-import { BaseOrm } from "./base.orm";
+import { BaseOrm } from "@xlr8-nest/core/database";
 import { InvitationOrm } from "./invitation.orm";
 import { PlanOrm } from "./plan.orm";
 import { PlanVersionOrm } from "./plan-version.orm";
@@ -46,11 +45,7 @@ export class TenantOrm extends BaseOrm<TenantOrm> {
   @Column({ type: "varchar", length: 255, nullable: true })
   domain?: string | null;
 
-  @Column({
-    type: "enum",
-    enum: TenantStatus,
-    default: TenantStatus.ACTIVE,
-  })
+  @Column({ type: "enum", enum: TenantStatus, default: TenantStatus.ACTIVE })
   status: TenantStatus;
 
   @Column({ name: "timezone_id", type: "uuid" })
@@ -59,20 +54,30 @@ export class TenantOrm extends BaseOrm<TenantOrm> {
   @Column({ name: "language_id", type: "uuid" })
   languageId: UUID;
 
-  @Column({
-    name: "branding_json",
-    type: "jsonb",
-    default: () => "'{}'::jsonb",
-  })
-  brandingJson: TenantBrandingJson;
+  // ── Branding ─────────────────────────────────────────────────────────────
+  @Column({ name: "branding_logo_url", type: "varchar", length: 2048, nullable: true })
+  brandingLogoUrl?: string | null;
 
-  @Column({
-    name: "settings_json",
-    type: "jsonb",
-    default: () => "'{}'::jsonb",
-  })
-  settingsJson: TenantSettingsJson;
+  @Column({ name: "branding_color", type: "varchar", length: 7, nullable: true })
+  brandingColor?: string | null;
 
+  @Column({ name: "branding_theme", type: "varchar", length: 10, nullable: true })
+  brandingTheme?: string | null;
+
+  // ── Settings ──────────────────────────────────────────────────────────────
+  @Column({ name: "settings_message_retention_days", type: "integer", nullable: true })
+  settingsMessageRetentionDays?: number | null;
+
+  @Column({ name: "settings_guest_access", type: "boolean", default: false })
+  settingsGuestAccess: boolean;
+
+  @Column({ name: "settings_file_sharing_enabled", type: "boolean", default: true })
+  settingsFileSharingEnabled: boolean;
+
+  @Column({ name: "settings_sso_provider", type: "varchar", length: 100, nullable: true })
+  settingsSsoProvider?: string | null;
+
+  // ── Lifecycle ────────────────────────────────────────────────────────────
   @Column({ name: "activated_at", type: "timestamptz", nullable: true })
   activatedAt?: Date | null;
 
@@ -88,6 +93,7 @@ export class TenantOrm extends BaseOrm<TenantOrm> {
   @DeleteDateColumn({ name: "deleted_at", type: "timestamptz", nullable: true })
   deletedAt?: Date | null;
 
+  // ── Relations ────────────────────────────────────────────────────────────
   @ManyToOne(() => PlanOrm, (plan) => plan.tenants, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "plan_code", referencedColumnName: "code" })
   plan: PlanOrm;

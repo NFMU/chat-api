@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UUID } from 'crypto';
-import { TenantBrandingJson, TenantSettingsJson } from 'src/shared';
+import { TenantBrandingProps } from 'src/domain/tenants/value-objects/tenant-branding.vo';
+import { TenantSettingProps } from 'src/domain/tenants/value-objects/tenant-setting.vo';
 import { z } from 'zod';
 
 export const CreateTenantInputSchema = z.object({
@@ -11,6 +12,17 @@ export const CreateTenantInputSchema = z.object({
   domain: z.string().optional().nullable(),
   timezoneId: z.uuid(),
   languageId: z.uuid(),
+  branding: z.object({
+    logoUrl: z.string().optional(),
+    color: z.string().optional(),
+    theme: z.enum(['light', 'dark', 'system']).optional(),
+  }).optional(),
+  tenantSetting: z.object({
+    messageRetentionDays: z.number().int().nonnegative().optional().nullable(),
+    guestAccess: z.boolean().optional(),
+    fileSharingEnabled: z.boolean().optional(),
+    ssoProvider: z.string().optional().nullable(),
+  }).optional(),
 });
 
 export class CreateTenantInput {
@@ -54,16 +66,18 @@ export class CreateTenantInput {
     },
     description: 'Branding information for the tenant. Optional.',
   })
-  branding?: TenantBrandingJson; // You can define a more specific type based on your branding structure
+  branding?: TenantBrandingProps;
 
   @ApiProperty({
     example: {
-      
-
+      messageRetentionDays: 30,
+      guestAccess: true,
+      fileSharingEnabled: false,
+      // ssoProvider: 'azure-ad',
     },
     description: 'Tenant-specific settings. Optional.',
   })
-  tenantSetting?: TenantSettingsJson; // You can define a more specific type based on your tenant settings structure
+  tenantSetting?: TenantSettingProps;
 
   @ApiProperty({
     example: '123e4567-e89b-12d3-a456-426614174000', //uuid,

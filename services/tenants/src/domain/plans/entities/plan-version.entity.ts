@@ -5,14 +5,14 @@ import { TenantErrors } from "src/shared/errors/tenant.error";
 import { BusinessException } from "src/shared/exceptions/business.exception";
 import { PlanCode } from "../value-objects/plan-code.vo";
 import { PlanFeatures } from "../value-objects/plan-features.vo";
-import { PlanLimits } from "../types/plan-limits.type";
+import { PlanLimit } from "../value-objects/plan-limit.vo";
 
 export interface PlanVersionProps {
   id: number;
   planCode: PlanCode;
   version: number;
+  limit: PlanLimit;
   features: PlanFeatures;
-  limits?: PlanLimits;
   status: PlanVersionStatus;
   publishedAt?: Date | null;
   deprecatedAt?: Date | null;
@@ -28,9 +28,7 @@ export interface PlanVersionProps {
 export class PlanVersion extends Entity<number> {
   private _planCode: PlanCode;
   private _version: number;
-  private _maxMembers: number | null;
-  private _maxChannels: number | null;
-  private _maxStorageGb: string | null;
+  private _limit: PlanLimit;
   private _features: PlanFeatures;
   private _status: PlanVersionStatus;
   private _publishedAt: Date | null;
@@ -41,9 +39,7 @@ export class PlanVersion extends Entity<number> {
     super(props.id);
     this._planCode = props.planCode;
     this._version = props.version;
-    this._maxMembers = props.limits?.maxMembers ?? null;
-    this._maxChannels = props.limits?.maxChannels ?? null;
-    this._maxStorageGb = props.limits?.maxStorageGb ?? null;
+    this._limit = props.limit;
     this._features = props.features;
     this._status = props.status;
     this._publishedAt = props.publishedAt ?? null;
@@ -51,9 +47,7 @@ export class PlanVersion extends Entity<number> {
     this._createdAt = props.createdAt ?? new Date();
   }
 
-  /**
-   * Called by Plan.draftNewVersion(). id = 0 is the sentinel for "not yet persisted".
-   */
+  /** Called by Plan.draftNewVersion(). id = 0 is the sentinel for "not yet persisted". */
   static create(
     props: Omit<PlanVersionProps, "id" | "status" | "publishedAt" | "deprecatedAt" | "createdAt">
   ): PlanVersion {
@@ -98,14 +92,8 @@ export class PlanVersion extends Entity<number> {
   getVersion(): number {
     return this._version;
   }
-  getMaxMembers(): number | null {
-    return this._maxMembers;
-  }
-  getMaxChannels(): number | null {
-    return this._maxChannels;
-  }
-  getMaxStorageGb(): string | null {
-    return this._maxStorageGb;
+  getLimit(): PlanLimit {
+    return this._limit;
   }
   getFeatures(): PlanFeatures {
     return this._features;

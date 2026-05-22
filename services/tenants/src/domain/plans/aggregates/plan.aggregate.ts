@@ -7,7 +7,7 @@ import { PlanVersionDeprecatedEvent } from "../events/plan-version-deprecated.ev
 import { PlanVersion } from "../entities/plan-version.entity";
 import { PlanCode } from "../value-objects/plan-code.vo";
 import { PlanFeatures } from "../value-objects/plan-features.vo";
-import { PlanLimits } from "../types/plan-limits.type";
+import { PlanLimit } from "../value-objects/plan-limit.vo";
 
 export interface PlanProps {
   code: PlanCode;
@@ -78,7 +78,7 @@ export class Plan extends AggregateRoot<PlanCode> {
    * Version number is derived from the current in-memory collection — no repository call needed.
    * The plan must be ACTIVE to accept new versions.
    */
-  draftNewVersion(limits: PlanLimits, features: PlanFeatures): PlanVersion {
+  draftNewVersion(limit: PlanLimit, features: PlanFeatures): PlanVersion {
     if (!this.isAvailable()) {
       throw new BusinessException(StatusCode.BAD_REQUEST, TenantErrors.PLAN_NOT_AVAILABLE);
     }
@@ -88,7 +88,7 @@ export class Plan extends AggregateRoot<PlanCode> {
     const version = PlanVersion.create({
       planCode: this._id,
       version: nextVersionNumber,
-      limits,
+      limit,
       features,
     });
 

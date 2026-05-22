@@ -1,6 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
 import { DataSource, Repository } from "typeorm";
 import { UUID } from "crypto";
+import { IUnitOfWorkToken, TypeOrmClient } from "@xlr8-nest/core/database";
 import { Tenant } from "src/domain/tenants/aggregates/tenant.aggregate";
 import { ITenantRepository } from "src/domain/tenants/repositories/tenant.repository";
 import { TenantSlug } from "src/domain/tenants/value-objects/tenant-slug.vo";
@@ -16,6 +17,8 @@ export class TenantRepository implements ITenantRepository {
 
   constructor(
     private readonly dataSource: DataSource,
+    @Inject(IUnitOfWorkToken)
+    private readonly uow: TypeOrmClient,
     private readonly tenantAdapter: TenantAdapter,
     private readonly subscriptionAdapter: TenantSubscriptionAdapter
   ) {
@@ -23,23 +26,21 @@ export class TenantRepository implements ITenantRepository {
   }
 
   async create(tenant: Tenant): Promise<void> {
-    await this.dataSource.transaction(async (em) => {
-      // INSERT — the tenant PK does not yet exist in the database.
-      await em.insert(TenantOrm, this.tenantAdapter.toOrm(tenant));
-      for (const sub of tenant.pullSubscriptionChanges()) {
-        await em.insert(TenantSubscriptionOrm, this.subscriptionAdapter.toOrm(sub));
-      }
-    });
+    // Uses the active transaction's EntityManager when called inside uow.transaction(),
+    // otherwise falls back to the default (non-transactional) manager.
+    const em = this.uow.client;
+    await em.insert(TenantOrm, this.tenantAdapter.toOrm(tenant));
+    for (const sub of tenant.pullSubscriptionChanges()) {
+      await em.insert(TenantSubscriptionOrm, this.subscriptionAdapter.toOrm(sub));
+    }
   }
 
   async save(tenant: Tenant): Promise<void> {
-    await this.dataSource.transaction(async (em) => {
-      // UPSERT — updates an existing tenant and persists any subscription changes.
-      await em.save(TenantOrm, this.tenantAdapter.toOrm(tenant));
-      for (const sub of tenant.pullSubscriptionChanges()) {
-        await em.save(TenantSubscriptionOrm, this.subscriptionAdapter.toOrm(sub));
-      }
-    });
+    const em = this.uow.client;
+    await em.save(TenantOrm, this.tenantAdapter.toOrm(tenant));
+    for (const sub of tenant.pullSubscriptionChanges()) {
+      await em.save(TenantSubscriptionOrm, this.subscriptionAdapter.toOrm(sub));
+    }
   }
 
   async findById(id: UUID): Promise<Tenant | null> {

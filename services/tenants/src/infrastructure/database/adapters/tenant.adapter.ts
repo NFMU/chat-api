@@ -2,13 +2,13 @@ import { Injectable } from "@nestjs/common";
 import { UUID } from "crypto";
 import { Tenant } from "src/domain/tenants/aggregates/tenant.aggregate";
 import { PlanCode } from "src/domain/plans/value-objects/plan-code.vo";
-import { TenantBranding } from "src/domain/tenants/value-objects/tenant-branding.vo";
+import { TenantBranding, TenantBrandingTheme } from "src/domain/tenants/value-objects/tenant-branding.vo";
 import { TenantDomain } from "src/domain/tenants/value-objects/tenant-domain.vo";
 import { TenantSetting } from "src/domain/tenants/value-objects/tenant-setting.vo";
 import { TenantSlug } from "src/domain/tenants/value-objects/tenant-slug.vo";
+import { SubscriptionStatus } from "src/shared/enums";
 import { TenantSubscriptionAdapter } from "./tenant-subscription.adapter";
 import { TenantOrm } from "../orms/tenant.orm";
-import { SubscriptionStatus } from "src/shared/enums";
 
 @Injectable()
 export class TenantAdapter {
@@ -35,8 +35,17 @@ export class TenantAdapter {
       status: orm.status,
       timezoneId: orm.timezoneId as UUID,
       languageId: orm.languageId as UUID,
-      branding: new TenantBranding(orm.brandingJson),
-      settings: new TenantSetting(orm.settingsJson),
+      branding: new TenantBranding({
+        logoUrl: orm.brandingLogoUrl ?? undefined,
+        color: orm.brandingColor ?? undefined,
+        theme: (orm.brandingTheme as TenantBrandingTheme) ?? undefined,
+      }),
+      settings: new TenantSetting({
+        messageRetentionDays: orm.settingsMessageRetentionDays ?? null,
+        guestAccess: orm.settingsGuestAccess,
+        fileSharingEnabled: orm.settingsFileSharingEnabled,
+        ssoProvider: orm.settingsSsoProvider ?? null,
+      }),
       activatedAt: orm.activatedAt,
       suspendedAt: orm.suspendedAt,
       createdAt: orm.createdAt,
@@ -45,6 +54,8 @@ export class TenantAdapter {
   }
 
   toOrm(domain: Tenant): TenantOrm {
+    const branding = domain.getBranding();
+    const settings = domain.getSettings();
     return new TenantOrm({
       uuid: domain.getId() as UUID,
       planCode: domain.getPlanCode().value,
@@ -56,8 +67,13 @@ export class TenantAdapter {
       status: domain.getStatus(),
       timezoneId: domain.getTimezoneId(),
       languageId: domain.getLanguageId(),
-      brandingJson: domain.getBranding(),
-      settingsJson: domain.getSettings(),
+      brandingLogoUrl: branding.logoUrl || null,
+      brandingColor: branding.color,
+      brandingTheme: branding.theme,
+      settingsMessageRetentionDays: settings.messageRetentionDays,
+      settingsGuestAccess: settings.guestAccess,
+      settingsFileSharingEnabled: settings.fileSharingEnabled,
+      settingsSsoProvider: settings.ssoProvider,
       activatedAt: domain.getActivatedAt(),
       suspendedAt: domain.getSuspendedAt(),
     });

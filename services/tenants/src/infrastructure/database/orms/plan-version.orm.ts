@@ -9,8 +9,7 @@ import {
   UniqueConstraint,
 } from "typeorm";
 import { PlanVersionStatus } from "src/shared/enums";
-import { PlanFeaturesJson } from "src/shared/types";
-import { BaseOrm } from "./base.orm";
+import { BaseOrm } from "@xlr8-nest/core/database";
 import { PlanOrm } from "./plan.orm";
 
 @Entity("plan_versions")
@@ -26,6 +25,7 @@ export class PlanVersionOrm extends BaseOrm<PlanVersionOrm> {
   @Column({ type: "integer" })
   version: number;
 
+  // ── Limits ────────────────────────────────────────────────────────────────
   @Column({ name: "max_members", type: "integer", nullable: true })
   maxMembers?: number | null;
 
@@ -41,13 +41,20 @@ export class PlanVersionOrm extends BaseOrm<PlanVersionOrm> {
   })
   maxStorageGb?: string | null;
 
-  @Column({
-    name: "features_json",
-    type: "jsonb",
-    default: () => "'{}'::jsonb",
-  })
-  featuresJson: PlanFeaturesJson;
+  // ── Features ─────────────────────────────────────────────────────────────
+  @Column({ name: "feature_guest_access", type: "boolean", default: false })
+  featureGuestAccess: boolean;
 
+  @Column({ name: "feature_custom_branding", type: "boolean", default: false })
+  featureCustomBranding: boolean;
+
+  @Column({ name: "feature_sso", type: "boolean", default: false })
+  featureSso: boolean;
+
+  @Column({ name: "feature_audit_log", type: "boolean", default: false })
+  featureAuditLog: boolean;
+
+  // ── Lifecycle ────────────────────────────────────────────────────────────
   @Column({
     type: "enum",
     enum: PlanVersionStatus,

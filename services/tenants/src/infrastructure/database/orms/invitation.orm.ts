@@ -14,7 +14,7 @@ import {
   InvitationStatus,
   InvitationType,
 } from "src/shared/enums";
-import { BaseOrm } from "./base.orm";
+import { BaseOrm } from "@xlr8-nest/core/database";
 import { TenantOrm } from "./tenant.orm";
 
 @Entity("invitations")
