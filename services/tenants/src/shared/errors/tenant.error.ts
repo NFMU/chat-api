@@ -101,4 +101,8 @@ export const TenantErrors: Record<string, ErrorType> = {
     code: "PLAN_VERSION_NOT_FOUND",
     message: "No published plan version found for the requested plan",
   },
+  PLAN_ALREADY_EXISTS: {
+    code: "PLAN_ALREADY_EXISTS",
+    message: "A plan with this code already exists",
+  },
 };

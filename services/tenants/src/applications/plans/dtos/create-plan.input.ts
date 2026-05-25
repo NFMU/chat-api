@@ -4,7 +4,7 @@ import { PlanLimitProps } from "src/domain/plans/value-objects/plan-limit.vo";
 import { z } from "zod";
 
 export const CreatePlanInputSchema = z.object({
-  code: z.string(),
+  code: z.string().regex(/^PLAN-[A-Z0-9]+$/, "Plan code must follow the format PLAN-<ALPHANUMERIC>"),
   name: z.string(),
   description: z.string(),
   features: z.object({
@@ -22,8 +22,8 @@ export const CreatePlanInputSchema = z.object({
 
 export class CreatePlanInput {
   @ApiProperty({
-    example: 'plan_premium',
-    description: 'Unique code for the plan, used for referencing in subscriptions.',
+    example: 'PLAN-PREMIUM',
+    description: 'Unique code for the plan. Must follow the format PLAN-<ALPHANUMERIC> (e.g. PLAN-FREE, PLAN-PREMIUM).',
   })
   code: string;
 

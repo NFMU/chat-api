@@ -3,9 +3,11 @@ import { ConfigModule } from '@nestjs/config';
 import { CqrsModule } from '@xlr8-nest/core';
 import { MessagingModule } from '@xlr8-nest/core/messaging';
 import { DatabaseModule } from './infrastructure/database/database.module';
-import { ApplicationProvider } from './applications/tenants/application-provider';
+import { DomainProvider } from './domain/domain-provider';
+import { ApplicationProvider } from './applications/application-provider';
 import { InfrastructureProvider } from './infrastructure/infrastructure-provider';
 import { TenantsController } from './presentation/http/tenants/tenants.controller';
+import { PlansController } from './presentation/http/plans/plans.controller';
 import { TenantEventTranslator } from './applications/tenants/translators/tenant-event.translator';
 
 @Module({
@@ -18,14 +20,12 @@ import { TenantEventTranslator } from './applications/tenants/translators/tenant
     }),
     DatabaseModule,
     MessagingModule.forRoot({
-      // Register translators here as new bounded contexts add them.
-      // The library wires the OutboxPublisher, repository, worker, and
-      // default ConsoleMessagePublisher automatically.
       translators: [TenantEventTranslator],
     }),
   ],
-  controllers: [TenantsController],
+  controllers: [TenantsController, PlansController],
   providers: [
+    ...DomainProvider,
     ...ApplicationProvider,
     ...InfrastructureProvider,
   ],

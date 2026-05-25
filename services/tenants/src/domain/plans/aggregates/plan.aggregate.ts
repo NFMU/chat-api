@@ -23,7 +23,7 @@ export class Plan extends AggregateRoot<PlanCode> {
   private _name: string;
   private _description: string;
   private _status: PlanStatus;
-  private _versions: PlanVersion[];
+  private _availableVersions: PlanVersion[];
   /**
    * Tracks PlanVersion entities that changed state during this operation.
    * The repository drains this via pullVersionChanges() and persists them.
@@ -37,7 +37,7 @@ export class Plan extends AggregateRoot<PlanCode> {
     this._name = props.name;
     this._description = props.description;
     this._status = props.status;
-    this._versions = props.versions ?? [];
+    this._availableVersions = props.versions ?? [];
     this._createdAt = props.createdAt ?? new Date();
     this._updatedAt = props.updatedAt ?? this._createdAt;
   }
@@ -83,7 +83,7 @@ export class Plan extends AggregateRoot<PlanCode> {
       throw new BusinessException(StatusCode.BAD_REQUEST, TenantErrors.PLAN_NOT_AVAILABLE);
     }
     const nextVersionNumber =
-      this._versions.reduce((max, v) => Math.max(max, v.getVersion()), 0) + 1;
+      this._availableVersions.reduce((max, v) => Math.max(max, v.getVersion()), 0) + 1;
 
     const version = PlanVersion.create({
       planCode: this._id,
@@ -92,7 +92,7 @@ export class Plan extends AggregateRoot<PlanCode> {
       features,
     });
 
-    this._versions.push(version);
+    this._availableVersions.push(version);
     this._versionChanges.push(version);
     this.touch();
     return version;
@@ -131,7 +131,7 @@ export class Plan extends AggregateRoot<PlanCode> {
    * This is the version used for new tenant subscriptions.
    */
   getLatestPublishedVersion(): PlanVersion | null {
-    const published = this._versions.filter((v) => v.isPublished());
+    const published = this._availableVersions.filter((v) => v.isPublished());
     if (published.length === 0) return null;
     return published.reduce((latest, v) =>
       v.getVersion() > latest.getVersion() ? v : latest
@@ -139,11 +139,11 @@ export class Plan extends AggregateRoot<PlanCode> {
   }
 
   getVersion(versionNumber: number): PlanVersion | null {
-    return this._versions.find((v) => v.getVersion() === versionNumber) ?? null;
+    return this._availableVersions.find((v) => v.getVersion() === versionNumber) ?? null;
   }
 
   getVersions(): PlanVersion[] {
-    return [...this._versions];
+    return [...this._availableVersions];
   }
 
   /**
