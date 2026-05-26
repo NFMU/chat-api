@@ -47,15 +47,14 @@ export class CreatePlanHandler implements ICommandHandler<CreatePlanCommand> {
       features,
     });
 
-    // 4. Atomic transaction: persist plan + initial version + any outbox events.
-    const domainEvents = await this.uow.transaction(async () => {
+    // 4. Atomic transaction: persist plan + initial version + dispatch + outbox.
+    //    Domain events dispatch first (internal), integration events persisted
+    //    second (external) — both in the same EntityManager context.
+    await this.uow.transaction(async () => {
       await this.planRepo.save(plan);
-      return this.outbox.publishFrom(plan);
+      const domainEvents = plan.pullEvents();
+      await this.eventBus.publishAll(domainEvents);
+      await this.outbox.publishEvents(domainEvents);
     });
-
-    // 5. Dispatch domain events in-process after commit.
-    for (const event of domainEvents) {
-      this.eventBus.publish(event);
-    }
   }
 }

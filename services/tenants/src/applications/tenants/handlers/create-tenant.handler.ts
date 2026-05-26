@@ -70,19 +70,15 @@ export class CreateTenantHandler implements ICommandHandler<CreateTenantCommand>
       languageId: input.languageId,
     });
 
-    // 6. Atomic transaction: persist tenant + initial subscription + integration events to outbox.
-    //    The library's IUnitOfWork.transaction() propagates the active EntityManager through
-    //    AsyncLocalStorage so the repository and outbox writes commit atomically.
-    let domainEvents = await this.uow.transaction(async () => {
+    // 6. Atomic transaction: all four writes share the same EntityManager and
+    //    commit together — no crash window between the DB write and dispatch.
+    //    Domain events fire first (internal notification), then integration
+    //    events are written to the outbox (external notification).
+    await this.uow.transaction(async () => {
       await this.tenantRepo.create(tenant);
-      return this.outbox.publishFrom(tenant);
+      const domainEvents = tenant.pullEvents();
+      await this.eventBus.publishAll(domainEvents);
+      await this.outbox.publishEvents(domainEvents);
     });
-
-    // 7. After commit, dispatch domain events to in-process listeners
-    //    (logging, metrics, read-model projectors). Failures here do NOT
-    //    affect cross-service delivery — that is already in the outbox.
-    for (const event of domainEvents) {
-      this.eventBus.publish(event);
-    }
   }
 }
