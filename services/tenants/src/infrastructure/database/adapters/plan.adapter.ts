@@ -16,6 +16,8 @@ export class PlanAdapter {
       description: orm.description ?? "",
       status: orm.status,
       versions,
+      latestVersionNumber: orm.latestVersionNumber,
+      aggregateVersion: orm.aggregateVersion,
       createdAt: orm.createdAt,
       updatedAt: orm.updatedAt,
     });
@@ -27,6 +29,8 @@ export class PlanAdapter {
       name: domain.getName(),
       description: domain.getDescription(),
       status: domain.getStatus(),
+      latestVersionNumber: domain.getLatestVersionNumber(),
+      aggregateVersion: domain.getAggregateVersion(),
     });
   }
 }

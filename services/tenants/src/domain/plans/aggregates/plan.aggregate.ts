@@ -15,6 +15,8 @@ export interface PlanProps {
   description: string;
   status: PlanStatus;
   versions?: PlanVersion[];
+  latestVersionNumber?: number;
+  aggregateVersion?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -25,10 +27,18 @@ export class Plan extends AggregateRoot<PlanCode> {
   private _status: PlanStatus;
   private _availableVersions: PlanVersion[];
   /**
+   * Highest version number ever assigned across all PlanVersions, including
+   * deprecated ones. Persisted on the plans row so draftNewVersion() never
+   * re-uses a number even when deprecated versions are excluded from the load.
+   */
+  private _latestVersionNumber: number;
+  /**
    * Tracks PlanVersion entities that changed state during this operation.
    * The repository drains this via pullVersionChanges() and persists them.
    */
   private _versionChanges: PlanVersion[] = [];
+  /** OCC counter managed by the repository layer (TypeORM @VersionColumn). */
+  private _aggregateVersion: number;
   private _createdAt: Date;
   private _updatedAt: Date;
 
@@ -38,6 +48,8 @@ export class Plan extends AggregateRoot<PlanCode> {
     this._description = props.description;
     this._status = props.status;
     this._availableVersions = props.versions ?? [];
+    this._latestVersionNumber = props.latestVersionNumber ?? 0;
+    this._aggregateVersion = props.aggregateVersion ?? 0;
     this._createdAt = props.createdAt ?? new Date();
     this._updatedAt = props.updatedAt ?? this._createdAt;
   }
@@ -82,8 +94,8 @@ export class Plan extends AggregateRoot<PlanCode> {
     if (!this.isAvailable()) {
       throw new BusinessException(StatusCode.BAD_REQUEST, TenantErrors.PLAN_NOT_AVAILABLE);
     }
-    const nextVersionNumber =
-      this._availableVersions.reduce((max, v) => Math.max(max, v.getVersion()), 0) + 1;
+    const nextVersionNumber = this._latestVersionNumber + 1;
+    this._latestVersionNumber = nextVersionNumber;
 
     const version = PlanVersion.create({
       planCode: this._id,
@@ -174,6 +186,14 @@ export class Plan extends AggregateRoot<PlanCode> {
 
   get code(): PlanCode {
     return this._id;
+  }
+
+  getLatestVersionNumber(): number {
+    return this._latestVersionNumber;
+  }
+
+  getAggregateVersion(): number {
+    return this._aggregateVersion;
   }
 
   getName(): string {

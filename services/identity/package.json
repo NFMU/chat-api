@@ -30,7 +30,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.4.1",
     "@nestjs/typeorm": "^11.0.1",
-    "@xlr8-nest/core": "^2.0.3",
+    "@xlr8-nest/core": "^2.1.0",
     "bcrypt": "^6.0.0",
     "nest-commander": "^3.20.1",
     "nodemailer": "^8.0.7",

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from 'src/infrastructure/database/database.module';
-
+import { MessagingModule } from 'src/infrastructure/messaging/messaging.module';
 
 @Module({
   imports: [
@@ -9,7 +9,8 @@ import { DatabaseModule } from 'src/infrastructure/database/database.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    DatabaseModule
+    DatabaseModule,
+    MessagingModule,
   ],
 })
 export class CliModule {}

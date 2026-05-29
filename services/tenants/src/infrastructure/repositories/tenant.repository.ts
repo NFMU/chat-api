@@ -1,5 +1,5 @@
 import { Injectable, Inject } from "@nestjs/common";
-import { DataSource, Repository } from "typeorm";
+import { DataSource, EntityManager, Repository } from "typeorm";
 import { UUID } from "crypto";
 import { IUnitOfWorkToken, TypeOrmClient } from "@xlr8-nest/core/database";
 import { Tenant } from "src/domain/tenants/aggregates/tenant.aggregate";
@@ -16,30 +16,28 @@ export class TenantRepository implements ITenantRepository {
   private readonly tenants: Repository<TenantOrm>;
 
   constructor(
-    private readonly dataSource: DataSource,
-    @Inject(IUnitOfWorkToken)
-    private readonly uow: TypeOrmClient,
+    private readonly typeOrmClient: TypeOrmClient,
     private readonly tenantAdapter: TenantAdapter,
     private readonly subscriptionAdapter: TenantSubscriptionAdapter
   ) {
-    this.tenants = dataSource.getRepository(TenantOrm);
+  }
+  get client(): EntityManager{
+    return this.typeOrmClient.client;
   }
 
   async create(tenant: Tenant): Promise<void> {
     // Uses the active transaction's EntityManager when called inside uow.transaction(),
     // otherwise falls back to the default (non-transactional) manager.
-    const em = this.uow.client;
-    await em.insert(TenantOrm, this.tenantAdapter.toOrm(tenant));
+    await this.client.insert(TenantOrm, this.tenantAdapter.toOrm(tenant));
     for (const sub of tenant.pullSubscriptionChanges()) {
-      await em.insert(TenantSubscriptionOrm, this.subscriptionAdapter.toOrm(sub));
+      await this.client.insert(TenantSubscriptionOrm, this.subscriptionAdapter.toOrm(sub));
     }
   }
 
   async save(tenant: Tenant): Promise<void> {
-    const em = this.uow.client;
-    await em.save(TenantOrm, this.tenantAdapter.toOrm(tenant));
+    await this.client.save(TenantOrm, this.tenantAdapter.toOrm(tenant));
     for (const sub of tenant.pullSubscriptionChanges()) {
-      await em.save(TenantSubscriptionOrm, this.subscriptionAdapter.toOrm(sub));
+      await this.client.save(TenantSubscriptionOrm, this.subscriptionAdapter.toOrm(sub));
     }
   }
 

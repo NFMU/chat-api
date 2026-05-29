@@ -6,23 +6,21 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  UniqueConstraint,
 } from "typeorm";
 import { PlanVersionStatus } from "src/shared/enums";
 import { BaseOrm } from "@xlr8-nest/core/database";
 import { PlanOrm } from "./plan.orm";
 
 @Entity("plan_versions")
-@UniqueConstraint("uq_plan_versions_code_version", ["planCode", "version"])
 @Index("idx_plan_versions_plan_code", ["planCode"])
 export class PlanVersionOrm extends BaseOrm<PlanVersionOrm> {
   @PrimaryGeneratedColumn({ type: "integer" })
   id: number;
 
-  @Column({ name: "plan_code", type: "varchar", length: 50 })
+  @Column({ name: "plan_code", type: "varchar", length: 50, unique: true })
   planCode: string;
 
-  @Column({ type: "integer" })
+  @Column({ type: "integer", unique: true })
   version: number;
 
   // ── Limits ────────────────────────────────────────────────────────────────

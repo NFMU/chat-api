@@ -105,4 +105,8 @@ export const TenantErrors: Record<string, ErrorType> = {
     code: "PLAN_ALREADY_EXISTS",
     message: "A plan with this code already exists",
   },
+  PLAN_CONCURRENT_MODIFICATION: {
+    code: "PLAN_CONCURRENT_MODIFICATION",
+    message: "Plan was modified concurrently, please retry",
+  },
 };

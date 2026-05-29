@@ -5,6 +5,7 @@ import {
   OneToMany,
   PrimaryColumn,
   UpdateDateColumn,
+  VersionColumn,
 } from "typeorm";
 import { PlanStatus } from "src/shared/enums";
 import { BaseOrm } from "@xlr8-nest/core/database";
@@ -28,6 +29,12 @@ export class PlanOrm extends BaseOrm<PlanOrm> {
     default: PlanStatus.ACTIVE,
   })
   status: PlanStatus;
+
+  @Column({ name: "latest_version_number", type: "integer", default: 0 })
+  latestVersionNumber: number;
+
+  @VersionColumn({ name: "aggregate_version" })
+  aggregateVersion: number;
 
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt: Date;
