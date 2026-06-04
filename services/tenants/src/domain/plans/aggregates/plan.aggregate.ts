@@ -1,4 +1,5 @@
-import { AggregateRoot, StatusCode } from "@xlr8-nest/core";
+import { StatusCode } from "@xlr8-nest/core/constants";
+import { AggregateRoot } from "@xlr8-nest/core/ddd";
 import { PlanStatus } from "src/shared/enums";
 import { TenantErrors } from "src/shared/errors/tenant.error";
 import { BusinessException } from "src/shared/exceptions/business.exception";

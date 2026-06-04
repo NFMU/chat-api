@@ -78,7 +78,7 @@ None currently published. The identity service does not use the transactional ou
 | Auth tokens | JWT via `@nestjs/jwt` | `JWT_SECRET` from env; globally registered `JwtModule` |
 | Email | Nodemailer via `@nestjs-modules/mailer` | SMTP config from env; used for signup verification + password reset |
 | Auth guard | `JwtAuthGuard` | Applied to protected routes (e.g. `POST /auth/logout`) |
-| Event bus | `EventModule.forRoot({ maxListeners: 20 })` | Internal event bus; not the same as `@xlr8-nest/core` EventBus |
+| Event bus | `EventModule.forRoot({ maxListeners: 20 })` from `@xlr8-nest/core/ddd` | Internal domain-event bus for signup verification and password reset email notifications |
 
 ---
 

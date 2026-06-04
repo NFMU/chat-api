@@ -29,9 +29,14 @@ _Last synced: 2026-05-26_
 
 | Library | Entry Points | Provides |
 |---------|-------------|---------|
-| `@xlr8-nest/core` | `@xlr8-nest/core` | `AggregateRoot`, `Entity`, `ValueObject`, `DomainEvent`, `CommandBus`, `EventBus`, `CqrsModule`, `StatusCode`, `ICommandHandler` |
+| `@xlr8-nest/core/ddd` | `@xlr8-nest/core/ddd` | `AggregateRoot`, `Entity`, `ValueObject`, `DomainEvent`, `CommandBus`, `QueryBus`, `EventBus`, `CqrsModule`, `EventModule`, `ICommandHandler` |
+| `@xlr8-nest/core/constants` | `@xlr8-nest/core/constants` | `StatusCode`, `CommonErrors` |
+| `@xlr8-nest/core/types` | `@xlr8-nest/core/types` | `ErrorType`, response envelope types, shared identity types |
+| `@xlr8-nest/core/openapi` / `@xlr8-nest/core/validator` / `@xlr8-nest/core/response` | explicit feature subpaths | OpenAPI decorators, Zod validation decorators, response builders |
 | `@xlr8-nest/core/database` | `@xlr8-nest/core/database` | `DatabaseExtensionModule`, `IUnitOfWork`, `IUnitOfWorkToken`, `TypeOrmClient` |
 | `@xlr8-nest/core/messaging` | `@xlr8-nest/core/messaging` | `IntegrationEvent`, `IDomainEventTranslator`, `DomainEventTranslatorRegistry`, `OutboxPublisher`, `MessagingModule`, `OutboxWorkerService` |
+
+> `@xlr8-nest/core` root imports are no longer used for feature symbols. Import feature modules from their explicit entry point so optional peer dependencies stay isolated.
 
 ---
 
@@ -44,7 +49,7 @@ _Last synced: 2026-05-26_
 - **Domain Services** coordinate cross-aggregate logic (e.g. `PlanSubscriptionService`, `InvitationDomainService`) with no direct coupling to infrastructure.
 
 ### CQRS
-- Commands and queries are dispatched via `CommandBus` / `QueryBus` from `@xlr8-nest/core`.
+- Commands and queries are dispatched via `CommandBus` / `QueryBus` from `@xlr8-nest/core/ddd`.
 - Handlers are auto-discovered via `@CommandHandler` / `@QueryHandler` decorators.
 - `EventBus` dispatches `DomainEvent`s in-process; sagas can subscribe and emit commands reactively.
 

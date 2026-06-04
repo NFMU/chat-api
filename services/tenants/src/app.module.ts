@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { CqrsModule } from '@xlr8-nest/core';
+import { CqrsModule } from '@xlr8-nest/core/ddd';
 import { MessagingModule } from '@xlr8-nest/core/messaging';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { DomainProvider } from './domain/domain-provider';

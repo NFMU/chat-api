@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { EntityManager } from "typeorm";
 import { OptimisticLockVersionMismatchError } from "typeorm";
-import { StatusCode } from "@xlr8-nest/core";
+import { StatusCode } from "@xlr8-nest/core/constants";
 import { TypeOrmClient } from "@xlr8-nest/core/database";
 import { Plan } from "src/domain/plans/aggregates/plan.aggregate";
 import { IPlanRepository } from "src/domain/plans/repositories/plan.repository";

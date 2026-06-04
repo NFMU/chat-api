@@ -1,4 +1,4 @@
-import { ErrorType } from "@xlr8-nest/core";
+import { ErrorType } from "@xlr8-nest/core/types";
 import { StatusCode } from "@xlr8-nest/core/constants";
 import { BaseError } from "@xlr8-nest/core/errors";
 

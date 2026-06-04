@@ -7,7 +7,7 @@ import { ReferenceModule } from './modules/references/reference.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { JwtModule } from '@nestjs/jwt';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { EventModule } from '@xlr8-nest/core';
+import { EventModule } from '@xlr8-nest/core/ddd';
 import { MailModule } from './modules/mail/mail.module';
 
 @Module({

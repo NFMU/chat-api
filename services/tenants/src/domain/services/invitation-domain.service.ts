@@ -1,5 +1,5 @@
 import { Injectable, Inject } from "@nestjs/common";
-import { StatusCode } from "@xlr8-nest/core";
+import { StatusCode } from "@xlr8-nest/core/constants";
 import { UUID } from "crypto";
 import {
   IInvitationRepository,

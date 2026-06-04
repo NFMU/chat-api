@@ -1,4 +1,5 @@
-import { AggregateRoot, StatusCode } from "@xlr8-nest/core";
+import { StatusCode } from "@xlr8-nest/core/constants";
+import { AggregateRoot } from "@xlr8-nest/core/ddd";
 import { UUID } from "crypto";
 import { v7 as uuidv7 } from "uuid";
 import { PlanCode } from "src/domain/plans/value-objects/plan-code.vo";

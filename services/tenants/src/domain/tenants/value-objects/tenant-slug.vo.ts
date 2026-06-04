@@ -1,4 +1,5 @@
-import { StatusCode, ValueObject } from "@xlr8-nest/core";
+import { StatusCode } from "@xlr8-nest/core/constants";
+import { ValueObject } from "@xlr8-nest/core/ddd";
 import { TenantErrors } from "src/shared/errors/tenant.error";
 import { BusinessException } from "src/shared/exceptions/business.exception";
 import { TenantDomain } from "./tenant-domain.vo";

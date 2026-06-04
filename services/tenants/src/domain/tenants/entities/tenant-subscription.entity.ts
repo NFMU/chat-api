@@ -1,5 +1,5 @@
 import { Entity } from "@xlr8-nest/core/ddd";
-import { StatusCode } from "@xlr8-nest/core";
+import { StatusCode } from "@xlr8-nest/core/constants";
 import { UUID } from "crypto";
 import { v7 as uuidv7 } from "uuid";
 import { SubscriptionStatus } from "src/shared/enums";

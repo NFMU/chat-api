@@ -1,5 +1,7 @@
 import { Body, Controller, Patch, Post } from "@nestjs/common";
-import { ApiPost, CommandBus, Validate } from "@xlr8-nest/core";
+import { CommandBus } from "@xlr8-nest/core/ddd";
+import { ApiPost } from "@xlr8-nest/core/openapi";
+import { Validate } from "@xlr8-nest/core/validator";
 import { CreateTenantCommand } from "src/applications/tenants/commands/create-tenant.command";
 import { CreateTenantInput, CreateTenantInputSchema } from "src/applications/tenants/dtos/create-tenant.input";
 

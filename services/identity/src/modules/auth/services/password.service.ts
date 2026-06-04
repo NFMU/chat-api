@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { EventBus } from "@xlr8-nest/core";
+import { EventBus } from "@xlr8-nest/core/ddd";
 import {
   BadRequestError,
   ConflictError,

@@ -1,4 +1,4 @@
-import { DomainEvent, Event } from "@xlr8-nest/core";
+import { DomainEvent, Event } from "@xlr8-nest/core/ddd";
 
 @Event()
 export class EmailVerificationRequestedEvent implements DomainEvent {
@@ -15,4 +15,3 @@ export class EmailVerificationRequestedEvent implements DomainEvent {
   eventName: string;
   occurredOn: Date;
 }
-

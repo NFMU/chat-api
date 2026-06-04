@@ -21,6 +21,7 @@
     "cli": "ts-node -r tsconfig-paths/register cli/cli.ts"
   },
   "dependencies": {
+    "@faker-js/faker": "^8.4.1",
     "@golevelup/nestjs-rabbitmq": "^9.0.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
@@ -30,6 +31,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.4.2",
     "@nestjs/typeorm": "^11.0.1",
+    "@sqltools/formatter": "^1.2.5",
     "@xlr8-nest/core": "^3.0.0",
     "bcrypt": "^6.0.0",
     "nest-commander": "^3.20.1",

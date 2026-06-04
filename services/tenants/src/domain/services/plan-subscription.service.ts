@@ -1,5 +1,5 @@
 import { Injectable, Inject } from "@nestjs/common";
-import { StatusCode } from "@xlr8-nest/core";
+import { StatusCode } from "@xlr8-nest/core/constants";
 import { Tenant } from "src/domain/tenants/aggregates/tenant.aggregate";
 import { IPlanRepository, PlanRepositoryToken } from "src/domain/plans/repositories/plan.repository";
 import { PlanCode } from "src/domain/plans/value-objects/plan-code.vo";

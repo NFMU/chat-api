@@ -1,4 +1,4 @@
-import { EventHandler } from "@xlr8-nest/core";
+import { EventHandler } from "@xlr8-nest/core/ddd";
 import { Injectable } from "@nestjs/common";
 import { MailerService } from "@nestjs-modules/mailer";
 import { ConfigService } from "@nestjs/config";
